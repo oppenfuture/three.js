@@ -38,12 +38,8 @@ THREE.GLTFLoader = ( function () {
 
 				} catch ( e ) {
 
-					if ( onError !== undefined ) {
-
-						// For SyntaxError or TypeError, return a generic failure message.
-						onError( e.constructor === Error ? e : new Error( 'THREE.GLTFLoader: Unable to parse model.' ) );
-
-					}
+					// For SyntaxError or TypeError, return a generic failure message.
+					onError( e.constructor === Error ? e : new Error( 'THREE.GLTFLoader: Unable to parse model.' ) );
 
 				}
 
@@ -2171,16 +2167,37 @@ THREE.GLTFLoader = ( function () {
 			] ).then( function ( dependencies ) {
 
 				return _each( __nodes, function ( _node, nodeId ) {
-	
+
 					var node = json.nodes[ nodeId ];
 
-					var mesh = node.mesh;
+					var meshes;
 
-					if ( mesh !== undefined) {
+					if ( node.mesh !== undefined) {
 
-						var group = dependencies.meshes[ mesh ];
+						meshes = [ node.mesh ];
 
-						if ( group !== undefined ) {
+					} else if ( node.meshes !== undefined ) {
+
+						console.warn( 'THREE.GLTFLoader: Legacy glTF file detected. Nodes may have no more than one mesh.' );
+
+						meshes = node.meshes;
+
+					}
+
+					if ( meshes !== undefined ) {
+
+						for ( var meshId in meshes ) {
+
+							var mesh = meshes[ meshId ];
+							var group = dependencies.meshes[ mesh ];
+
+							if ( group === undefined ) {
+
+								console.warn( 'THREE.GLTFLoader: Could not find node "' + mesh + '".' );
+								continue;
+
+							}
+
 							// do not clone children as they will be replaced anyway
 							var clonedgroup = group.clone( false );
 
@@ -2281,11 +2298,8 @@ THREE.GLTFLoader = ( function () {
 							}
 
 							_node.add( clonedgroup );
-						} else {
 
-							console.warn( 'THREE.GLTFLoader: Could not find node "' + mesh + '".' );
-
-						}                            
+						}
 
 					}
 

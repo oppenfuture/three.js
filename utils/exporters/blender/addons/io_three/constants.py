@@ -246,10 +246,14 @@ NORMAL = 'normal'
 ITEM_SIZE = 'itemSize'
 ARRAY = 'array'
 
+FLOAT_32 = 'Float32Array'
+
 VISIBLE = 'visible'
 CAST_SHADOW = 'castShadow'
 RECEIVE_SHADOW = 'receiveShadow'
 QUAD = 'quad'
+
+USER_DATA = 'userData'
 
 MASK = {
     QUAD: 0,
@@ -353,6 +357,7 @@ THREE_PHONG = 'MeshPhongMaterial'
 
 INTENSITY = 'intensity'
 DISTANCE = 'distance'
+ASPECT = 'aspect'
 ANGLE = 'angle'
 DECAY = 'decayExponent'
 

@@ -15,6 +15,7 @@ function Skeleton( bones, boneInverses ) {
 
 	this.bones = bones.slice( 0 );
 	this.boneMatrices = new Float32Array( this.bones.length * 16 );
+	this.rootMotionBone = null;
 
 	// use the supplied bone inverses or calculate the inverses
 
@@ -152,6 +153,26 @@ Object.assign( Skeleton.prototype, {
 
 		return new Skeleton( this.bones, this.boneInverses );
 
+	},
+
+	setRootMotionBone: function(bone) {
+		if (typeof bone == 'object') {
+			if (bone.type == 'Bone') {
+				this.rootMotionBone = bone;
+			}
+		} else if (typeof bone == 'string') {
+			for (var i = 0; i < this.bones.length; ++i) {
+				if (this.bones[i].name.indexOf(bone) >= 0) {
+					this.rootMotionBone = this.bones[i];
+					break;
+				}
+			}
+		}
+
+		if (this.rootMotionBone) {
+			this.rootMotionBoneInitialMatrixInverse = this.rootMotionBone.matrixWorld.clone();
+			this.rootMotionBoneInitialMatrixInverse.getInverse(this.rootMotionBoneInitialMatrixInverse);
+		}
 	}
 
 } );

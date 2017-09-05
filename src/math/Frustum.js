@@ -91,8 +91,14 @@ Object.assign( Frustum.prototype, {
 			if ( geometry.boundingSphere === null )
 				geometry.computeBoundingSphere();
 
-			sphere.copy( geometry.boundingSphere )
-				.applyMatrix4( object.matrixWorld );
+			sphere.copy( geometry.boundingSphere );
+			if (object.skeleton && object.skeleton.rootMotionBone) {
+				var rootMotion = object.skeleton.rootMotionBone.matrixWorld.clone();
+				rootMotion.multiply(object.skeleton.rootMotionBoneInitialMatrixInverse);
+				sphere.applyMatrix4(rootMotion);
+			} else {
+				sphere.applyMatrix4( object.matrixWorld );
+			}
 
 			return this.intersectsSphere( sphere );
 

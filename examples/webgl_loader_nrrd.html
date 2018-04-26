@@ -176,7 +176,7 @@
 				} );
 				// renderer
 
-				renderer = new THREE.WebGLRenderer( { antialias: false, alpha: true } );
+				renderer = new THREE.WebGLRenderer( { alpha: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 
@@ -263,7 +263,7 @@
 				camera2.up = camera.up; // important!
 
 				// axes
-				axes2 = new THREE.AxisHelper( 100 );
+				axes2 = new THREE.AxesHelper( 100 );
 				scene2.add( axes2 );
 			}
 

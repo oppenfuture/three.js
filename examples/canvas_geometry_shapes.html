@@ -82,10 +82,10 @@
 
 					// line
 
-					var geometry = shape.createPointsGeometry();
-					geometry.vertices.push( geometry.vertices[ 0 ].clone() );
+					var points = shape.getPoints();
+					var geometry = new THREE.BufferGeometry().setFromPoints( points );
 
-					var material = new THREE.LineBasicMaterial( { linewidth: 10, color: 0x333333, transparent: true } );
+					var material = new THREE.LineBasicMaterial( { linewidth: 10, color: 0x333333 } );
 
 					var line = new THREE.Line( geometry, material );
 					line.position.set( x, y, z );

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 	<head>
 		<title>three.js raycast - texture</title>
@@ -65,6 +65,9 @@
 			<div class="control">
 				Repeat : X <input type="number" value="1" step="0.1" onchange="setRepeatU(this)" />
 				Y <input type="number" value="1" step="0.1" onchange="setRepeatV(this)" />
+			</div>
+			<div class="control">
+				Rotation : <input type="number" value="0" step="0.1" onchange="setRotation(this)" />
 			</div>
 		</fieldset>
 		<script src="../build/three.js"></script>
@@ -370,6 +373,12 @@
 			function setRepeatV( that ) {
 
 				circleTexture.repeat.y = parseFloat( that.value );
+
+			}
+
+			function setRotation( that ) {
+
+				circleTexture.rotation = parseFloat( that.value );
 
 			}
 

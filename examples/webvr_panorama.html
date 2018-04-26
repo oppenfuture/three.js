@@ -4,8 +4,8 @@
 		<title>three.js webvr - panorama</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-		<!-- Origin Trial Token, feature = WebVR (For Chrome M59+), origin = https://threejs.org, expires = 2017-09-03 -->
-		<meta http-equiv="origin-trial" data-feature="WebVR (For Chrome M59+)" data-expires="2017-09-03" content="Aqj+6XPnxHoSxQj/CDjGXhzrVFeP12/Pgvj7rfqFqVzodYX0ZXJNHTJIvCVExQfvip+Zq9GES+SOQ/zJlpceZgcAAABNeyJvcmlnaW4iOiJodHRwczovL3RocmVlanMub3JnOjQ0MyIsImZlYXR1cmUiOiJXZWJWUjEuMSIsImV4cGlyeSI6MTUwNDQ2NDIwNn0=">
+		<!-- Origin Trial Token, feature = WebVR (For Chrome M62+), origin = https://threejs.org, expires = 2018-05-12 -->
+		<meta http-equiv="origin-trial" data-feature="WebVR (For Chrome M62+)" data-expires="2018-05-12" content="AkM+gi6Fb7IUBwFLs18hn/x6dusbsVRYG9KBTWUUjvmT0m0wGkxRPy63Aj/i+Ti4d6qMEMnRcsR7MVV5Wuvp/AIAAABQeyJvcmlnaW4iOiJodHRwczovL3RocmVlanMub3JnOjQ0MyIsImZlYXR1cmUiOiJXZWJWUjEuMU02MiIsImV4cGlyeSI6MTUyNjExODIwMH0=">
 		<style>
 			html, body {
 				background-color: #000;
@@ -23,14 +23,6 @@
 
 		<script>
 
-		WEBVR.checkAvailability().catch( function( message ) {
-
-			document.body.appendChild( WEBVR.getMessageContainer( message ) );
-
-		} );
-
-		//
-
 		var camera;
 		var renderer;
 		var scene;
@@ -43,24 +35,21 @@
 			renderer = new THREE.WebGLRenderer();
 			renderer.setPixelRatio( window.devicePixelRatio );
 			renderer.setSize( window.innerWidth, window.innerHeight );
+			renderer.vr.enabled = true;
+			renderer.vr.userHeight = 0; // TOFIX
 			document.body.appendChild( renderer.domElement );
 
-			renderer.vr.enabled = true;
+			document.body.appendChild( WEBVR.createButton( renderer ) );
+
+			//
 
 			scene = new THREE.Scene();
 
 			camera = new THREE.PerspectiveCamera( 90, window.innerWidth / window.innerHeight, 1, 1000 );
 			camera.layers.enable( 1 );
 
-			WEBVR.getVRDisplay( function ( display ) {
-
-				renderer.vr.setDevice( display );
-
-				document.body.appendChild( WEBVR.getButton( display, renderer.domElement ) );
-
-			} );
-
 			var geometry = new THREE.CubeGeometry( 100, 100, 100 );
+			geometry.scale( 1, 1, - 1 );
 			var textures = getTexturesFromAtlasFile( "textures/cube/sun_temple_stripe_stereo.jpg", 12 );
 
 			var materials = [];
@@ -72,7 +61,6 @@
 			}
 
 			var skyBox = new THREE.Mesh( geometry, materials );
-			skyBox.applyMatrix( new THREE.Matrix4().makeScale( 1, 1, - 1 ) );
 			skyBox.layers.set( 1 );
 			scene.add( skyBox );
 
@@ -86,7 +74,6 @@
 			}
 
 			var skyBoxR = new THREE.Mesh( geometry, materialsR );
-			skyBoxR.applyMatrix( new THREE.Matrix4().makeScale( 1, 1, - 1 ) );
 			skyBoxR.layers.set( 2 );
 			scene.add( skyBoxR );
 

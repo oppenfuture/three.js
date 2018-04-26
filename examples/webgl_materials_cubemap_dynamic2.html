@@ -61,7 +61,7 @@
 				scene = new THREE.Scene();
 
 				var mesh = new THREE.Mesh( new THREE.SphereBufferGeometry( 500, 32, 16 ), new THREE.MeshBasicMaterial( { map: texture } ) );
-				mesh.scale.x = -1;
+				mesh.geometry.scale( - 1, 1, 1 );
 				scene.add( mesh );
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -142,7 +142,10 @@
 
 			function onDocumentMouseWheel( event ) {
 
-				camera.fov += ( event.deltaY * 0.05 );
+				var fov = camera.fov + event.deltaY * 0.05;
+
+				camera.fov = THREE.Math.clamp( fov, 10, 75 );
+
 				camera.updateProjectionMatrix();
 
 			}

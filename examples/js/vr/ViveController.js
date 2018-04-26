@@ -23,7 +23,7 @@ THREE.ViveController = function ( id ) {
 
 		var gamepads = navigator.getGamepads && navigator.getGamepads();
 
-		for ( var i = 0, j = 0; i < 4; i ++ ) {
+		for ( var i = 0, j = 0; i < gamepads.length; i ++ ) {
 
 			var gamepad = gamepads[ i ];
 
@@ -72,7 +72,7 @@ THREE.ViveController = function ( id ) {
 			if ( pose.position !== null ) scope.position.fromArray( pose.position );
 			if ( pose.orientation !== null ) scope.quaternion.fromArray( pose.orientation );
 			scope.matrix.compose( scope.position, scope.quaternion, scope.scale );
-			scope.matrix.multiplyMatrices( scope.standingMatrix, scope.matrix );
+			scope.matrix.premultiply( scope.standingMatrix );	
 			scope.matrixWorldNeedsUpdate = true;
 			scope.visible = true;
 

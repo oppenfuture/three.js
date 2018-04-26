@@ -14,7 +14,7 @@ function Vector2( x, y ) {
 
 Object.defineProperties( Vector2.prototype, {
 
-	"width" : {
+	"width": {
 
 		get: function () {
 
@@ -30,7 +30,7 @@ Object.defineProperties( Vector2.prototype, {
 
 	},
 
-	"height" : {
+	"height": {
 
 		get: function () {
 
@@ -365,7 +365,7 @@ Object.assign( Vector2.prototype, {
 
 	},
 
-	lengthManhattan: function() {
+	manhattanLength: function () {
 
 		return Math.abs( this.x ) + Math.abs( this.y );
 
@@ -402,7 +402,7 @@ Object.assign( Vector2.prototype, {
 
 	},
 
-	distanceToManhattan: function ( v ) {
+	manhattanDistanceTo: function ( v ) {
 
 		return Math.abs( this.x - v.x ) + Math.abs( this.y - v.y );
 

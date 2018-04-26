@@ -23,10 +23,10 @@ function WebGLSpriteRenderer( renderer, gl, state, textures, capabilities ) {
 	function init() {
 
 		var vertices = new Float32Array( [
-			- 0.5, - 0.5,  0, 0,
-			  0.5, - 0.5,  1, 0,
-			  0.5,   0.5,  1, 1,
-			- 0.5,   0.5,  0, 1
+			- 0.5, - 0.5, 0, 0,
+			  0.5, - 0.5, 1, 0,
+			  0.5, 0.5, 1, 1,
+			- 0.5, 0.5, 0, 1
 		] );
 
 		var faces = new Uint16Array( [
@@ -34,7 +34,7 @@ function WebGLSpriteRenderer( renderer, gl, state, textures, capabilities ) {
 			0, 2, 3
 		] );
 
-		vertexBuffer  = gl.createBuffer();
+		vertexBuffer = gl.createBuffer();
 		elementBuffer = gl.createBuffer();
 
 		gl.bindBuffer( gl.ARRAY_BUFFER, vertexBuffer );
@@ -46,32 +46,33 @@ function WebGLSpriteRenderer( renderer, gl, state, textures, capabilities ) {
 		program = createProgram();
 
 		attributes = {
-			position:			gl.getAttribLocation ( program, 'position' ),
-			uv:					gl.getAttribLocation ( program, 'uv' )
+			position: gl.getAttribLocation( program, 'position' ),
+			uv: gl.getAttribLocation( program, 'uv' )
 		};
 
 		uniforms = {
-			uvOffset:			gl.getUniformLocation( program, 'uvOffset' ),
-			uvScale:			gl.getUniformLocation( program, 'uvScale' ),
+			uvOffset: gl.getUniformLocation( program, 'uvOffset' ),
+			uvScale: gl.getUniformLocation( program, 'uvScale' ),
 
-			rotation:			gl.getUniformLocation( program, 'rotation' ),
-			scale:				gl.getUniformLocation( program, 'scale' ),
+			rotation: gl.getUniformLocation( program, 'rotation' ),
+			center: gl.getUniformLocation( program, 'center' ),
+			scale: gl.getUniformLocation( program, 'scale' ),
 
-			color:				gl.getUniformLocation( program, 'color' ),
-			map:				gl.getUniformLocation( program, 'map' ),
-			opacity:			gl.getUniformLocation( program, 'opacity' ),
+			color: gl.getUniformLocation( program, 'color' ),
+			map: gl.getUniformLocation( program, 'map' ),
+			opacity: gl.getUniformLocation( program, 'opacity' ),
 
-			modelViewMatrix: 	gl.getUniformLocation( program, 'modelViewMatrix' ),
-			projectionMatrix:	gl.getUniformLocation( program, 'projectionMatrix' ),
+			modelViewMatrix: gl.getUniformLocation( program, 'modelViewMatrix' ),
+			projectionMatrix: gl.getUniformLocation( program, 'projectionMatrix' ),
 
-			fogType:			gl.getUniformLocation( program, 'fogType' ),
-			fogDensity:			gl.getUniformLocation( program, 'fogDensity' ),
-			fogNear:			gl.getUniformLocation( program, 'fogNear' ),
-			fogFar:				gl.getUniformLocation( program, 'fogFar' ),
-			fogColor:			gl.getUniformLocation( program, 'fogColor' ),
-			fogDepth:			gl.getUniformLocation( program, 'fogDepth' ),
+			fogType: gl.getUniformLocation( program, 'fogType' ),
+			fogDensity: gl.getUniformLocation( program, 'fogDensity' ),
+			fogNear: gl.getUniformLocation( program, 'fogNear' ),
+			fogFar: gl.getUniformLocation( program, 'fogFar' ),
+			fogColor: gl.getUniformLocation( program, 'fogColor' ),
+			fogDepth: gl.getUniformLocation( program, 'fogDepth' ),
 
-			alphaTest:			gl.getUniformLocation( program, 'alphaTest' )
+			alphaTest: gl.getUniformLocation( program, 'alphaTest' )
 		};
 
 		var canvas = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
@@ -171,6 +172,7 @@ function WebGLSpriteRenderer( renderer, gl, state, textures, capabilities ) {
 		// render all sprites
 
 		var scale = [];
+		var center = [];
 
 		for ( var i = 0, l = sprites.length; i < l; i ++ ) {
 
@@ -188,6 +190,9 @@ function WebGLSpriteRenderer( renderer, gl, state, textures, capabilities ) {
 
 			scale[ 0 ] = spriteScale.x;
 			scale[ 1 ] = spriteScale.y;
+
+			center[ 0 ] = sprite.center.x - 0.5;
+			center[ 1 ] = sprite.center.y - 0.5;
 
 			var fogType = 0;
 
@@ -220,6 +225,7 @@ function WebGLSpriteRenderer( renderer, gl, state, textures, capabilities ) {
 			gl.uniform3f( uniforms.color, material.color.r, material.color.g, material.color.b );
 
 			gl.uniform1f( uniforms.rotation, material.rotation );
+			gl.uniform2fv( uniforms.center, center );
 			gl.uniform2fv( uniforms.scale, scale );
 
 			state.setBlending( material.blending, material.blendEquation, material.blendSrc, material.blendDst, material.blendEquationAlpha, material.blendSrcAlpha, material.blendDstAlpha, material.premultipliedAlpha );
@@ -259,6 +265,7 @@ function WebGLSpriteRenderer( renderer, gl, state, textures, capabilities ) {
 			'uniform mat4 modelViewMatrix;',
 			'uniform mat4 projectionMatrix;',
 			'uniform float rotation;',
+			'uniform vec2 center;',
 			'uniform vec2 scale;',
 			'uniform vec2 uvOffset;',
 			'uniform vec2 uvScale;',
@@ -271,22 +278,22 @@ function WebGLSpriteRenderer( renderer, gl, state, textures, capabilities ) {
 
 			'void main() {',
 
-				'vUV = uvOffset + uv * uvScale;',
+			'	vUV = uvOffset + uv * uvScale;',
 
-				'vec2 alignedPosition = position * scale;',
+			'	vec2 alignedPosition = ( position - center ) * scale;',
 
-				'vec2 rotatedPosition;',
-				'rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;',
-				'rotatedPosition.y = sin( rotation ) * alignedPosition.x + cos( rotation ) * alignedPosition.y;',
+			'	vec2 rotatedPosition;',
+			'	rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;',
+			'	rotatedPosition.y = sin( rotation ) * alignedPosition.x + cos( rotation ) * alignedPosition.y;',
 
-				'vec4 mvPosition;',
+			'	vec4 mvPosition;',
 
-				'mvPosition = modelViewMatrix * vec4( 0.0, 0.0, 0.0, 1.0 );',
-				'mvPosition.xy += rotatedPosition;',
+			'	mvPosition = modelViewMatrix * vec4( 0.0, 0.0, 0.0, 1.0 );',
+			'	mvPosition.xy += rotatedPosition;',
 
-				'gl_Position = projectionMatrix * mvPosition;',
+			'	gl_Position = projectionMatrix * mvPosition;',
 
-				'fogDepth = - mvPosition.z;',
+			'	fogDepth = - mvPosition.z;',
 
 			'}'
 
@@ -314,31 +321,31 @@ function WebGLSpriteRenderer( renderer, gl, state, textures, capabilities ) {
 
 			'void main() {',
 
-				'vec4 texture = texture2D( map, vUV );',
+			'	vec4 texture = texture2D( map, vUV );',
 
-				'gl_FragColor = vec4( color * texture.xyz, texture.a * opacity );',
+			'	gl_FragColor = vec4( color * texture.xyz, texture.a * opacity );',
 
-				'if ( gl_FragColor.a < alphaTest ) discard;',
+			'	if ( gl_FragColor.a < alphaTest ) discard;',
 
-				'if ( fogType > 0 ) {',
+			'	if ( fogType > 0 ) {',
 
-					'float fogFactor = 0.0;',
+			'		float fogFactor = 0.0;',
 
-					'if ( fogType == 1 ) {',
+			'		if ( fogType == 1 ) {',
 
-						'fogFactor = smoothstep( fogNear, fogFar, fogDepth );',
+			'			fogFactor = smoothstep( fogNear, fogFar, fogDepth );',
 
-					'} else {',
+			'		} else {',
 
-						'const float LOG2 = 1.442695;',
-						'fogFactor = exp2( - fogDensity * fogDensity * fogDepth * fogDepth * LOG2 );',
-						'fogFactor = 1.0 - clamp( fogFactor, 0.0, 1.0 );',
+			'			const float LOG2 = 1.442695;',
+			'			fogFactor = exp2( - fogDensity * fogDensity * fogDepth * fogDepth * LOG2 );',
+			'			fogFactor = 1.0 - clamp( fogFactor, 0.0, 1.0 );',
 
-					'}',
+			'		}',
 
-					'gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );',
+			'		gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );',
 
-				'}',
+			'	}',
 
 			'}'
 

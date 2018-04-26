@@ -173,6 +173,24 @@ Object.assign( Skeleton.prototype, {
 			this.rootMotionBoneInitialMatrixInverse = this.rootMotionBone.matrixWorld.clone();
 			this.rootMotionBoneInitialMatrixInverse.getInverse(this.rootMotionBoneInitialMatrixInverse);
 		}
+	},
+
+	getBoneByName: function ( name ) {
+
+		for ( var i = 0, il = this.bones.length; i < il; i ++ ) {
+
+			var bone = this.bones[ i ];
+
+			if ( bone.name === name ) {
+
+				return bone;
+
+			}
+
+		}
+
+		return undefined;
+
 	}
 
 } );

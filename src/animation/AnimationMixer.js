@@ -27,7 +27,9 @@ function AnimationMixer( root ) {
 
 }
 
-Object.assign( AnimationMixer.prototype, EventDispatcher.prototype, {
+AnimationMixer.prototype = Object.assign( Object.create( EventDispatcher.prototype ), {
+
+	constructor: AnimationMixer,
 
 	_bindAction: function ( action, prototypeAction ) {
 
@@ -77,7 +79,7 @@ Object.assign( AnimationMixer.prototype, EventDispatcher.prototype, {
 				}
 
 				var path = prototypeAction && prototypeAction.
-						_propertyBindings[ i ].binding.parsedPath;
+					_propertyBindings[ i ].binding.parsedPath;
 
 				binding = new PropertyMixer(
 					PropertyBinding.create( root, trackName, path ),
@@ -193,16 +195,40 @@ Object.assign( AnimationMixer.prototype, EventDispatcher.prototype, {
 		this.stats = {
 
 			actions: {
-				get total() { return scope._actions.length; },
-				get inUse() { return scope._nActiveActions; }
+				get total() {
+
+					return scope._actions.length;
+
+				},
+				get inUse() {
+
+					return scope._nActiveActions;
+
+				}
 			},
 			bindings: {
-				get total() { return scope._bindings.length; },
-				get inUse() { return scope._nActiveBindings; }
+				get total() {
+
+					return scope._bindings.length;
+
+				},
+				get inUse() {
+
+					return scope._nActiveBindings;
+
+				}
 			},
 			controlInterpolants: {
-				get total() { return scope._controlInterpolants.length; },
-				get inUse() { return scope._nActiveControlInterpolants; }
+				get total() {
+
+					return scope._controlInterpolants.length;
+
+				},
+				get inUse() {
+
+					return scope._nActiveControlInterpolants;
+
+				}
 			}
 
 		};
@@ -404,7 +430,7 @@ Object.assign( AnimationMixer.prototype, EventDispatcher.prototype, {
 
 		remove_empty_map: {
 
-			for ( var _ in bindingByName ) break remove_empty_map;
+			for ( var _ in bindingByName ) break remove_empty_map; // eslint-disable-line no-unused-vars
 
 			delete bindingsByRoot[ rootUuid ];
 

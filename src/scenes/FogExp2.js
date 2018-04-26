@@ -5,7 +5,7 @@ import { Color } from '../math/Color.js';
  * @author alteredq / http://alteredqualia.com/
  */
 
-function FogExp2 ( color, density ) {
+function FogExp2( color, density ) {
 
 	this.name = '';
 
@@ -22,7 +22,7 @@ FogExp2.prototype.clone = function () {
 
 };
 
-FogExp2.prototype.toJSON = function ( meta ) {
+FogExp2.prototype.toJSON = function ( /* meta */ ) {
 
 	return {
 		type: 'FogExp2',

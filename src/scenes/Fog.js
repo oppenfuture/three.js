@@ -5,7 +5,7 @@ import { Color } from '../math/Color.js';
  * @author alteredq / http://alteredqualia.com/
  */
 
-function Fog ( color, near, far ) {
+function Fog( color, near, far ) {
 
 	this.name = '';
 
@@ -24,7 +24,7 @@ Fog.prototype.clone = function () {
 
 };
 
-Fog.prototype.toJSON = function ( meta ) {
+Fog.prototype.toJSON = function ( /* meta */ ) {
 
 	return {
 		type: 'Fog',

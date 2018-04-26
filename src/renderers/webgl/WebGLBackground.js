@@ -4,7 +4,6 @@
 
 import { BackSide } from '../../constants.js';
 import { OrthographicCamera } from '../../cameras/OrthographicCamera.js';
-import { PerspectiveCamera } from '../../cameras/PerspectiveCamera.js';
 import { BoxBufferGeometry } from '../../geometries/BoxGeometry.js';
 import { PlaneBufferGeometry } from '../../geometries/PlaneGeometry.js';
 import { MeshBasicMaterial } from '../../materials/MeshBasicMaterial.js';
@@ -55,7 +54,6 @@ function WebGLBackground( renderer, state, geometries, premultipliedAlpha ) {
 						side: BackSide,
 						depthTest: true,
 						depthWrite: false,
-						polygonOffset: true,
 						fog: false
 					} )
 				);
@@ -65,12 +63,7 @@ function WebGLBackground( renderer, state, geometries, premultipliedAlpha ) {
 
 				boxMesh.onBeforeRender = function ( renderer, scene, camera ) {
 
-					var scale = camera.far;
-
-					this.matrixWorld.makeScale( scale, scale, scale );
 					this.matrixWorld.copyPosition( camera.matrixWorld );
-
-					this.material.polygonOffsetUnits = scale * 10;
 
 				};
 

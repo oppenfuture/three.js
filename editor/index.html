@@ -21,9 +21,10 @@
 		<script src="../examples/js/loaders/AMFLoader.js"></script>
 		<script src="../examples/js/loaders/AWDLoader.js"></script>
 		<script src="../examples/js/loaders/BabylonLoader.js"></script>
-		<script src="../examples/js/loaders/ColladaLoader2.js"></script>
+		<script src="../examples/js/loaders/ColladaLoader.js"></script>
 		<script src="../examples/js/loaders/FBXLoader.js"></script>
 		<script src="../examples/js/loaders/GLTFLoader.js"></script>
+		<script src="../examples/js/loaders/deprecated/LegacyGLTFLoader.js"></script>
 		<script src="../examples/js/loaders/KMZLoader.js"></script>
 		<script src="../examples/js/loaders/MD2Loader.js"></script>
 		<script src="../examples/js/loaders/OBJLoader.js"></script>
@@ -31,6 +32,7 @@
 		<script src="../examples/js/loaders/PlayCanvasLoader.js"></script>
 		<script src="../examples/js/loaders/PLYLoader.js"></script>
 		<script src="../examples/js/loaders/STLLoader.js"></script>
+		<script src="../examples/js/loaders/SVGLoader.js"></script>
 		<script src="../examples/js/loaders/TGALoader.js"></script>
 		<script src="../examples/js/loaders/TDSLoader.js"></script>
 		<script src="../examples/js/loaders/UTF8Loader.js"></script>
@@ -106,6 +108,8 @@
 		<script src="js/Sidebar.Scene.js"></script>
 		<script src="js/Sidebar.Project.js"></script>
 		<script src="js/Sidebar.Settings.js"></script>
+		<script src="js/Sidebar.Settings.Shortcuts.js"></script>
+		<script src="js/Sidebar.Settings.Viewport.js"></script>
 		<script src="js/Sidebar.Properties.js"></script>
 		<script src="js/Sidebar.Object.js"></script>
 		<script src="js/Sidebar.Geometry.js"></script>
@@ -152,8 +156,6 @@
 		<script src="js/commands/SetMaterialColorCommand.js"></script>
 		<script src="js/commands/SetMaterialMapCommand.js"></script>
 		<script src="js/commands/SetSceneCommand.js"></script>
-
-		<!-- <script type="text/javascript" src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs" data-app-key="qyqgfqd9j8z890t"></script> -->
 
 		<script src="js/libs/html2canvas.js"></script>
 		<script src="js/libs/three.html.js"></script>
@@ -285,61 +287,6 @@
 				if ( event.dataTransfer.files.length > 0 ) {
 
 					editor.loader.loadFile( event.dataTransfer.files[ 0 ] );
-
-				}
-
-			}, false );
-
-			document.addEventListener( 'keydown', function ( event ) {
-
-				switch ( event.keyCode ) {
-
-					case 8: // backspace
-
-						event.preventDefault(); // prevent browser back
-
-					case 46: // delete
-
-						var object = editor.selected;
-
-						if ( confirm( 'Delete ' + object.name + '?' ) === false ) return;
-
-						var parent = object.parent;
-						if ( parent !== null ) editor.execute( new RemoveObjectCommand( object ) );
-
-						break;
-
-					case 90: // Register Ctrl-Z for Undo, Ctrl-Shift-Z for Redo
-
-						if ( event.ctrlKey && event.shiftKey ) {
-
-							editor.redo();
-
-						} else if ( event.ctrlKey ) {
-
-							editor.undo();
-
-						}
-
-						break;
-
-					case 87: // Register W for translation transform mode
-
-						editor.signals.transformModeChanged.dispatch( 'translate' );
-
-						break;
-
-					case 69: // Register E for rotation transform mode
-
-						editor.signals.transformModeChanged.dispatch( 'rotate' );
-
-						break;
-
-					case 82: // Register R for scaling transform mode
-
-						editor.signals.transformModeChanged.dispatch( 'scale' );
-
-						break;
 
 				}
 

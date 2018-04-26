@@ -1,8 +1,6 @@
-import { Vector4 } from '../../math/Vector4.js';
 import { Color } from '../../math/Color.js';
 import { Vector2 } from '../../math/Vector2.js';
 import { Matrix3 } from '../../math/Matrix3.js';
-import { DataTexture } from '../../textures/DataTexture.js';
 
 /**
  * Uniforms library for shared webgl shaders
@@ -33,7 +31,8 @@ var UniformsLib = {
 		envMap: { value: null },
 		flipEnvMap: { value: - 1 },
 		reflectivity: { value: 1.0 },
-		refractionRatio: { value: 0.98 }
+		refractionRatio: { value: 0.98 },
+		maxMipLevel: { value: 0 }
 
 	},
 

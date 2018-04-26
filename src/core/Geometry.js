@@ -19,12 +19,11 @@ import { _Math } from '../math/Math.js';
  * @author bhouston / http://clara.io
  */
 
-var count = 0;
-function GeometryIdCount() { return count++; }
+var geometryId = 0; // Geometry uses even numbers as Id
 
 function Geometry() {
 
-	Object.defineProperty( this, 'id', { value: GeometryIdCount() } );
+	Object.defineProperty( this, 'id', { value: geometryId += 2 } );
 
 	this.uuid = _Math.generateUUID();
 
@@ -59,7 +58,9 @@ function Geometry() {
 
 }
 
-Object.assign( Geometry.prototype, EventDispatcher.prototype, {
+Geometry.prototype = Object.assign( Object.create( EventDispatcher.prototype ), {
+
+	constructor: Geometry,
 
 	isGeometry: true,
 
@@ -353,15 +354,21 @@ Object.assign( Geometry.prototype, EventDispatcher.prototype, {
 
 	center: function () {
 
-		this.computeBoundingBox();
+		var offset = new Vector3();
 
-		var offset = this.boundingBox.getCenter().negate();
+		return function center() {
 
-		this.translate( offset.x, offset.y, offset.z );
+			this.computeBoundingBox();
 
-		return offset;
+			this.boundingBox.getCenter( offset ).negate();
 
-	},
+			this.translate( offset.x, offset.y, offset.z );
+
+			return this;
+
+		};
+
+	}(),
 
 	normalize: function () {
 
@@ -655,25 +662,6 @@ Object.assign( Geometry.prototype, EventDispatcher.prototype, {
 
 	},
 
-	computeLineDistances: function () {
-
-		var d = 0;
-		var vertices = this.vertices;
-
-		for ( var i = 0, il = vertices.length; i < il; i ++ ) {
-
-			if ( i > 0 ) {
-
-				d += vertices[ i ].distanceTo( vertices[ i - 1 ] );
-
-			}
-
-			this.lineDistances[ i ] = d;
-
-		}
-
-	},
-
 	computeBoundingBox: function () {
 
 		if ( this.boundingBox === null ) {
@@ -827,7 +815,7 @@ Object.assign( Geometry.prototype, EventDispatcher.prototype, {
 
 		}
 
-		mesh.matrixAutoUpdate && mesh.updateMatrix();
+		if ( mesh.matrixAutoUpdate ) mesh.updateMatrix();
 
 		this.merge( mesh.geometry, mesh.matrix );
 
@@ -919,6 +907,21 @@ Object.assign( Geometry.prototype, EventDispatcher.prototype, {
 		var diff = this.vertices.length - unique.length;
 		this.vertices = unique;
 		return diff;
+
+	},
+
+	setFromPoints: function ( points ) {
+
+		this.vertices = [];
+
+		for ( var i = 0, l = points.length; i < l; i ++ ) {
+
+			var point = points[ i ];
+			this.vertices.push( new Vector3( point.x, point.y, point.z || 0 ) );
+
+		}
+
+		return this;
 
 	},
 
@@ -1435,4 +1438,4 @@ Object.assign( Geometry.prototype, EventDispatcher.prototype, {
 } );
 
 
-export { GeometryIdCount, Geometry };
+export { Geometry };

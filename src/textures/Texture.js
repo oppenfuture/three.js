@@ -39,6 +39,7 @@ function Texture( image, mapping, wrapS, wrapT, magFilter, minFilter, format, ty
 
 	this.offset = new Vector2( 0, 0 );
 	this.repeat = new Vector2( 1, 1 );
+	this.center = new Vector2( 0, 0 );
 	this.rotation = 0;
 
 	this.matrixAutoUpdate = true;
@@ -63,21 +64,17 @@ function Texture( image, mapping, wrapS, wrapT, magFilter, minFilter, format, ty
 Texture.DEFAULT_IMAGE = undefined;
 Texture.DEFAULT_MAPPING = UVMapping;
 
-Object.defineProperty( Texture.prototype, "needsUpdate", {
-
-	set: function ( value ) {
-
-		if ( value === true ) this.version ++;
-
-	}
-
-} );
-
-Object.assign( Texture.prototype, EventDispatcher.prototype, {
+Texture.prototype = Object.assign( Object.create( EventDispatcher.prototype ), {
 
 	constructor: Texture,
 
 	isTexture: true,
+
+	updateMatrix: function () {
+
+		this.matrix.setUvTransform( this.offset.x, this.offset.y, this.repeat.x, this.repeat.y, this.rotation, this.center.x, this.center.y );
+
+	},
 
 	clone: function () {
 
@@ -107,6 +104,7 @@ Object.assign( Texture.prototype, EventDispatcher.prototype, {
 
 		this.offset.copy( source.offset );
 		this.repeat.copy( source.repeat );
+		this.center.copy( source.center );
 		this.rotation = source.rotation;
 
 		this.matrixAutoUpdate = source.matrixAutoUpdate;
@@ -124,7 +122,9 @@ Object.assign( Texture.prototype, EventDispatcher.prototype, {
 
 	toJSON: function ( meta ) {
 
-		if ( meta.textures[ this.uuid ] !== undefined ) {
+		var isRootObject = ( meta === undefined || typeof meta === 'string' );
+
+		if ( ! isRootObject && meta.textures[ this.uuid ] !== undefined ) {
 
 			return meta.textures[ this.uuid ];
 
@@ -171,6 +171,7 @@ Object.assign( Texture.prototype, EventDispatcher.prototype, {
 		}
 
 		var output = {
+
 			metadata: {
 				version: 4.5,
 				type: 'Texture',
@@ -184,15 +185,18 @@ Object.assign( Texture.prototype, EventDispatcher.prototype, {
 
 			repeat: [ this.repeat.x, this.repeat.y ],
 			offset: [ this.offset.x, this.offset.y ],
+			center: [ this.center.x, this.center.y ],
 			rotation: this.rotation,
 
 			wrap: [ this.wrapS, this.wrapT ],
 
+			format: this.format,
 			minFilter: this.minFilter,
 			magFilter: this.magFilter,
 			anisotropy: this.anisotropy,
 
 			flipY: this.flipY
+
 		};
 
 		if ( this.image !== undefined ) {
@@ -207,7 +211,7 @@ Object.assign( Texture.prototype, EventDispatcher.prototype, {
 
 			}
 
-			if ( meta.images[ image.uuid ] === undefined ) {
+			if ( ! isRootObject && meta.images[ image.uuid ] === undefined ) {
 
 				meta.images[ image.uuid ] = {
 					uuid: image.uuid,
@@ -220,7 +224,11 @@ Object.assign( Texture.prototype, EventDispatcher.prototype, {
 
 		}
 
-		meta.textures[ this.uuid ] = output;
+		if ( ! isRootObject ) {
+
+			meta.textures[ this.uuid ] = output;
+
+		}
 
 		return output;
 
@@ -305,6 +313,16 @@ Object.assign( Texture.prototype, EventDispatcher.prototype, {
 			uv.y = 1 - uv.y;
 
 		}
+
+	}
+
+} );
+
+Object.defineProperty( Texture.prototype, "needsUpdate", {
+
+	set: function ( value ) {
+
+		if ( value === true ) this.version ++;
 
 	}
 

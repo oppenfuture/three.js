@@ -27,7 +27,7 @@ THREE.AssimpJSONLoader.prototype = {
 
 		var scope = this;
 
-		var path = THREE.Loader.prototype.extractUrlBase( url );
+		var path = THREE.LoaderUtils.extractUrlBase( url );
 
 		var loader = new THREE.FileLoader( this.manager );
 		loader.load( url, function ( text ) {
@@ -149,7 +149,7 @@ THREE.AssimpJSONLoader.prototype = {
 
 					case '$tex.file': {
 
-						var semantic =  property.semantic;
+						var semantic = property.semantic;
 
 						// prop.semantic gives the type of the texture
 						// 1: diffuse
@@ -219,6 +219,13 @@ THREE.AssimpJSONLoader.prototype = {
 						material.flatShading = ( value === 1 ) ? true : false;
 						break;
 
+					case '$mat.opacity':
+						if ( value < 1 ) {
+							material.opacity = value;
+							material.transparent = true;
+						}
+						break;
+
 				}
 
 			}
@@ -255,8 +262,8 @@ THREE.AssimpJSONLoader.prototype = {
 		var textureLoader = new THREE.TextureLoader( this.manager );
 		textureLoader.setPath( path ).setCrossOrigin( this.crossOrigin );
 
-		var meshes = parseList ( json.meshes, parseMesh );
-		var materials = parseList ( json.materials, parseMaterial );
+		var meshes = parseList( json.meshes, parseMesh );
+		var materials = parseList( json.materials, parseMaterial );
 		return parseObject( json, json.rootnode, meshes, materials );
 
 	}

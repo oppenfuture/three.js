@@ -16,7 +16,7 @@ THREE.VRMLLoader.prototype = {
 	isRecordingPoints: false,
 	isRecordingFaces: false,
 	points: [],
-	indexes : [],
+	indexes: [],
 
 	// for Background support
 	isRecordingAngles: false,
@@ -53,12 +53,6 @@ THREE.VRMLLoader.prototype = {
 
 		var textureLoader = new THREE.TextureLoader( this.manager );
 		textureLoader.setCrossOrigin( this.crossOrigin );
-
-		function parseV1( lines, scene ) {
-
-			console.warn( 'THREE.VRMLLoader: V1.0 not supported yet.' );
-
-		};
 
 		function parseV2( lines, scene ) {
 
@@ -179,7 +173,7 @@ THREE.VRMLLoader.prototype = {
 
 				geometry.addAttribute( 'color', colorAttribute );
 
-			};
+			}
 
 			var index = [];
 
@@ -193,7 +187,7 @@ THREE.VRMLLoader.prototype = {
 				 */
 				var regex = /[^\s,\[\]]+/g;
 
-				var point, angles, colors;
+				var point;
 
 				while ( null !== ( part = regex.exec( line ) ) ) {
 
@@ -206,6 +200,7 @@ THREE.VRMLLoader.prototype = {
 
 				// trigger several recorders
 				switch ( fieldName ) {
+
 					case 'skyAngle':
 					case 'groundAngle':
 						this.recordingFieldname = fieldName;
@@ -232,6 +227,7 @@ THREE.VRMLLoader.prototype = {
 						this.isRecordingFaces = true;
 						this.indexes = [];
 						break;
+
 				}
 
 				if ( this.isRecordingFaces ) {
@@ -283,36 +279,40 @@ THREE.VRMLLoader.prototype = {
 						index = [];
 
 						this.isRecordingFaces = false;
-						node[this.recordingFieldname] = this.indexes;
+						node[ this.recordingFieldname ] = this.indexes;
 
 					}
 
 				} else if ( this.isRecordingPoints ) {
 
-					if ( node.nodeType == 'Coordinate' )
+					if ( node.nodeType == 'Coordinate' ) {
 
-					while ( null !== ( parts = float3_pattern.exec( line ) ) ) {
+						while ( null !== ( parts = float3_pattern.exec( line ) ) ) {
 
-						point = {
-							x: parseFloat( parts[ 1 ] ),
-							y: parseFloat( parts[ 2 ] ),
-							z: parseFloat( parts[ 3 ] )
-						};
+							point = {
+								x: parseFloat( parts[ 1 ] ),
+								y: parseFloat( parts[ 2 ] ),
+								z: parseFloat( parts[ 3 ] )
+							};
 
-						this.points.push( point );
+							this.points.push( point );
+
+						}
 
 					}
 
-					if ( node.nodeType == 'TextureCoordinate' )
+					if ( node.nodeType == 'TextureCoordinate' ) {
 
-					while ( null !== ( parts = float2_pattern.exec( line ) ) ) {
+						while ( null !== ( parts = float2_pattern.exec( line ) ) ) {
 
-						point = {
-							x: parseFloat( parts[ 1 ] ),
-							y: parseFloat( parts[ 2 ] )
-						};
+							point = {
+								x: parseFloat( parts[ 1 ] ),
+								y: parseFloat( parts[ 2 ] )
+							};
 
-						this.points.push( point );
+							this.points.push( point );
+
+						}
 
 					}
 
@@ -470,6 +470,7 @@ THREE.VRMLLoader.prototype = {
 							property = parts[ 1 ] === 'TRUE' ? true : false;
 
 							break;
+
 					}
 
 					node[ fieldName ] = property;
@@ -478,7 +479,7 @@ THREE.VRMLLoader.prototype = {
 
 				return property;
 
-			};
+			}
 
 			function getTree( lines ) {
 
@@ -494,7 +495,7 @@ THREE.VRMLLoader.prototype = {
 					var line = lines[ i ];
 
 					// omit whitespace only lines
-					if ( null !== ( result = /^\s+?$/g.exec( line ) ) ) {
+					if ( null !== ( /^\s+?$/g.exec( line ) ) ) {
 
 						continue;
 
@@ -525,7 +526,7 @@ THREE.VRMLLoader.prototype = {
 
 						// first subpattern should match the Node name
 
-						var block = { 'nodeType' : matches[ 1 ], 'string': line, 'parent': current, 'children': [], 'comment' : comment };
+						var block = { 'nodeType': matches[ 1 ], 'string': line, 'parent': current, 'children': [], 'comment': comment };
 						current.children.push( block );
 						current = block;
 
@@ -559,7 +560,7 @@ THREE.VRMLLoader.prototype = {
 
 				return tree;
 
-			};
+			}
 
 			function parseNode( data, parent ) {
 
@@ -610,7 +611,7 @@ THREE.VRMLLoader.prototype = {
 
 				object = parent;
 
-				if ( data.string.indexOf( 'AmbientLight') > - 1 && data.nodeType === 'PointLight' ) {
+				if ( data.string.indexOf( 'AmbientLight' ) > - 1 && data.nodeType === 'PointLight' ) {
 
 					data.nodeType = 'AmbientLight';
 
@@ -626,54 +627,54 @@ THREE.VRMLLoader.prototype = {
 
 				}
 
-				if ( 'AmbientLight' === data.nodeType){
+				if ( data.nodeType === 'AmbientLight' ) {
 
 					object = new THREE.AmbientLight( l_color, l_intensity );
 					object.visible = l_visible;
 
 					parent.add( object );
 
-				} else if ( 'PointLight' === data.nodeType ) {
+				} else if ( data.nodeType === 'PointLight' ) {
 
-						var l_distance = 0;
+					var l_distance = 0;
 
-						if ( data.radius !== undefined && data.radius < 1000 ){
+					if ( data.radius !== undefined && data.radius < 1000 ) {
 
-							l_distance = data.radius;
+						l_distance = data.radius;
 
-						}
+					}
 
-						object=new THREE.PointLight( l_color, l_intensity, l_distance );
-						object.visible = l_visible;
+					object = new THREE.PointLight( l_color, l_intensity, l_distance );
+					object.visible = l_visible;
 
-						parent.add( object );
+					parent.add( object );
 
-				} else if ( 'SpotLight' === data.nodeType ) {
+				} else if ( data.nodeType === 'SpotLight' ) {
 
-						var l_intensity = 1;
-						var l_distance = 0;
-						var l_angle = Math.PI/3;
-						var l_penumbra = 0;
-						var l_visible = true;
+					var l_intensity = 1;
+					var l_distance = 0;
+					var l_angle = Math.PI / 3;
+					var l_penumbra = 0;
+					var l_visible = true;
 
-						if ( data.radius !== undefined && data.radius < 1000 ) {
+					if ( data.radius !== undefined && data.radius < 1000 ) {
 
-							l_distance = data.radius;
+						l_distance = data.radius;
 
-						}
+					}
 
-						if ( data.cutOffAngle !== undefined ) {
+					if ( data.cutOffAngle !== undefined ) {
 
-							l_angle = data.cutOffAngle;
+						l_angle = data.cutOffAngle;
 
-						}
+					}
 
-						object = new THREE.SpotLight( l_color, l_intensity, l_distance, l_angle, l_penumbra );
-						object.visible = l_visible;
+					object = new THREE.SpotLight( l_color, l_intensity, l_distance, l_angle, l_penumbra );
+					object.visible = l_visible;
 
-						parent.add( object );
+					parent.add( object );
 
-				} else if ( 'Transform' === data.nodeType || 'Group' === data.nodeType ) {
+				} else if ( data.nodeType === 'Transform' || data.nodeType === 'Group' ) {
 
 					object = new THREE.Object3D();
 
@@ -684,7 +685,7 @@ THREE.VRMLLoader.prototype = {
 
 					}
 
-					if ( undefined !== data[ 'translation' ] ) {
+					if ( data.translation !== undefined ) {
 
 						var t = data.translation;
 
@@ -692,7 +693,7 @@ THREE.VRMLLoader.prototype = {
 
 					}
 
-					if ( undefined !== data.rotation ) {
+					if ( data.rotation !== undefined ) {
 
 						var r = data.rotation;
 
@@ -700,7 +701,7 @@ THREE.VRMLLoader.prototype = {
 
 					}
 
-					if ( undefined !== data.scale ) {
+					if ( data.scale !== undefined ) {
 
 						var s = data.scale;
 
@@ -710,7 +711,7 @@ THREE.VRMLLoader.prototype = {
 
 					parent.add( object );
 
-				} else if ( 'Shape' === data.nodeType ) {
+				} else if ( data.nodeType === 'Shape' ) {
 
 					object = new THREE.Mesh();
 
@@ -724,7 +725,7 @@ THREE.VRMLLoader.prototype = {
 
 					parent.add( object );
 
-				} else if ( 'Background' === data.nodeType ) {
+				} else if ( data.nodeType === 'Background' ) {
 
 					var segments = 20;
 
@@ -739,7 +740,7 @@ THREE.VRMLLoader.prototype = {
 
 						paintFaces( skyGeometry, radius, data.skyAngle, data.skyColor, true );
 
-						skyMaterial.vertexColors = THREE.VertexColors
+						skyMaterial.vertexColors = THREE.VertexColors;
 
 					} else {
 
@@ -767,29 +768,28 @@ THREE.VRMLLoader.prototype = {
 
 				} else if ( /geometry/.exec( data.string ) ) {
 
-					if ( 'Box' === data.nodeType ) {
+					if ( data.nodeType === 'Box' ) {
 
 						var s = data.size;
 
 						parent.geometry = new THREE.BoxBufferGeometry( s.x, s.y, s.z );
 
-					} else if ( 'Cylinder' === data.nodeType ) {
+					} else if ( data.nodeType === 'Cylinder' ) {
 
 						parent.geometry = new THREE.CylinderBufferGeometry( data.radius, data.radius, data.height );
 
-					} else if ( 'Cone' === data.nodeType ) {
+					} else if ( data.nodeType === 'Cone' ) {
 
 						parent.geometry = new THREE.CylinderBufferGeometry( data.topRadius, data.bottomRadius, data.height );
 
-					} else if ( 'Sphere' === data.nodeType ) {
+					} else if ( data.nodeType === 'Sphere' ) {
 
 						parent.geometry = new THREE.SphereBufferGeometry( data.radius );
 
-					} else if ( 'IndexedFaceSet' === data.nodeType ) {
+					} else if ( data.nodeType === 'IndexedFaceSet' ) {
 
 						var geometry = new THREE.BufferGeometry();
 
-						var index = [];
 						var positions = [];
 						var uvs = [];
 
@@ -803,7 +803,7 @@ THREE.VRMLLoader.prototype = {
 
 							// uvs
 
-							if ( 'TextureCoordinate' === child.nodeType ) {
+							if ( child.nodeType === 'TextureCoordinate' ) {
 
 								if ( child.points ) {
 
@@ -820,7 +820,7 @@ THREE.VRMLLoader.prototype = {
 
 							// positions
 
-							if ( 'Coordinate' === child.nodeType ) {
+							if ( child.nodeType === 'Coordinate' ) {
 
 								if ( child.points ) {
 
@@ -833,7 +833,7 @@ THREE.VRMLLoader.prototype = {
 
 								}
 
-								if ( child.string.indexOf ( 'DEF' ) > - 1 ) {
+								if ( child.string.indexOf( 'DEF' ) > - 1 ) {
 
 									var name = /DEF\s+([^\s]+)/.exec( child.string )[ 1 ];
 
@@ -841,7 +841,7 @@ THREE.VRMLLoader.prototype = {
 
 								}
 
-								if ( child.string.indexOf ( 'USE' ) > - 1 ) {
+								if ( child.string.indexOf( 'USE' ) > - 1 ) {
 
 									var defineKey = /USE\s+([^\s]+)/.exec( child.string )[ 1 ];
 
@@ -874,6 +874,8 @@ THREE.VRMLLoader.prototype = {
 								skip = 0;
 
 								while ( indexes.length >= 3 && skip < ( indexes.length - 2 ) ) {
+
+									if ( data.ccw === undefined ) data.ccw = true; // ccw is true by default
 
 									var i1 = indexes[ 0 ];
 									var i2 = indexes[ skip + ( data.ccw ? 1 : 2 ) ];
@@ -953,11 +955,11 @@ THREE.VRMLLoader.prototype = {
 
 						var child = data.children[ i ];
 
-						if ( 'Material' === child.nodeType ) {
+						if ( child.nodeType === 'Material' ) {
 
 							var material = new THREE.MeshPhongMaterial();
 
-							if ( undefined !== child.diffuseColor ) {
+							if ( child.diffuseColor !== undefined ) {
 
 								var d = child.diffuseColor;
 
@@ -965,7 +967,7 @@ THREE.VRMLLoader.prototype = {
 
 							}
 
-							if ( undefined !== child.emissiveColor ) {
+							if ( child.emissiveColor !== undefined ) {
 
 								var e = child.emissiveColor;
 
@@ -973,7 +975,7 @@ THREE.VRMLLoader.prototype = {
 
 							}
 
-							if ( undefined !== child.specularColor ) {
+							if ( child.specularColor !== undefined ) {
 
 								var s = child.specularColor;
 
@@ -981,7 +983,7 @@ THREE.VRMLLoader.prototype = {
 
 							}
 
-							if ( undefined !== child.transparency ) {
+							if ( child.transparency !== undefined ) {
 
 								var t = child.transparency;
 
@@ -1004,11 +1006,11 @@ THREE.VRMLLoader.prototype = {
 
 						}
 
-						if ( 'ImageTexture' === child.nodeType ) {
+						if ( child.nodeType === 'ImageTexture' ) {
 
-							var textureName = /"([^"]+)"/.exec(child.children[ 0 ]);
+							var textureName = /"([^"]+)"/.exec( child.children[ 0 ] );
 
-							if (textureName) {
+							if ( textureName ) {
 
 								parent.material.name = textureName[ 1 ];
 
@@ -1030,55 +1032,72 @@ THREE.VRMLLoader.prototype = {
 
 				}
 
-			};
+			}
 
 			parseNode( getTree( lines ), scene );
 
-		};
+		}
 
 		var scene = new THREE.Scene();
 
 		var lines = data.split( '\n' );
 
 		// some lines do not have breaks
-		for (var i = lines.length -1; i > -1; i--) {
+
+		for ( var i = lines.length - 1; i > - 1; i -- ) {
+
+			var line = lines[ i ];
 
 			// split lines with {..{ or {..[ - some have both
-			if (/{.*[{\[]/.test (lines[i])) {
-				var parts = lines[i].split ('{').join ('{\n').split ('\n');
-				parts.unshift(1);
-				parts.unshift(i);
-				lines.splice.apply(lines, parts);
-			} else
+			if ( /{.*[{\[]/.test( line ) ) {
 
-			// split lines with ]..}
-			if (/\].*}/.test (lines[i])) {
-				var parts = lines[i].split (']').join (']\n').split ('\n');
-				parts.unshift(1);
-				parts.unshift(i);
-				lines.splice.apply(lines, parts);
+				var parts = line.split( '{' ).join( '{\n' ).split( '\n' );
+				parts.unshift( 1 );
+				parts.unshift( i );
+				lines.splice.apply( lines, parts );
+
+			} else if ( /\].*}/.test( line ) ) {
+
+				// split lines with ]..}
+				var parts = line.split( ']' ).join( ']\n' ).split( '\n' );
+				parts.unshift( 1 );
+				parts.unshift( i );
+				lines.splice.apply( lines, parts );
+
 			}
 
-			// split lines with }..}
-			if (/}.*}/.test (lines[i])) {
-				var parts = lines[i].split ('}').join ('}\n').split ('\n');
-				parts.unshift(1);
-				parts.unshift(i);
-				lines.splice.apply(lines, parts);
+			if ( /}.*}/.test( line ) ) {
+
+				// split lines with }..}
+				var parts = line.split( '}' ).join( '}\n' ).split( '\n' );
+				parts.unshift( 1 );
+				parts.unshift( i );
+				lines.splice.apply( lines, parts );
+
 			}
 
-			// force the parser to create Coordinate node for empty coords
-			// coord USE something -> coord USE something Coordinate {}
-			if((lines[i].indexOf ('coord') > -1) && (lines[i].indexOf ('[') < 0) && (lines[i].indexOf ('{') < 0)) {
-				lines[i] += ' Coordinate {}';
+			if ( /^\b[^\s]+\b$/.test( line.trim() ) ) {
+
+				// prevent lines with single words like "coord" or "geometry", see #12209
+				lines[ i + 1 ] = line + ' ' + lines[ i + 1 ].trim();
+				lines.splice( i, 1 );
+
+			} else if ( ( line.indexOf( 'coord' ) > - 1 ) && ( line.indexOf( '[' ) < 0 ) && ( line.indexOf( '{' ) < 0 ) ) {
+
+				// force the parser to create Coordinate node for empty coords
+				// coord USE something -> coord USE something Coordinate {}
+
+				lines[ i ] += ' Coordinate {}';
+
 			}
+
 		}
 
 		var header = lines.shift();
 
 		if ( /V1.0/.exec( header ) ) {
 
-			parseV1( lines, scene );
+			console.warn( 'THREE.VRMLLoader: V1.0 not supported yet.' );
 
 		} else if ( /V2.0/.exec( header ) ) {
 

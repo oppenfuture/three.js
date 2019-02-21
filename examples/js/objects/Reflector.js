@@ -55,13 +55,12 @@ THREE.Reflector = function ( geometry, options ) {
 	var material = new THREE.ShaderMaterial( {
 		uniforms: THREE.UniformsUtils.clone( shader.uniforms ),
 		fragmentShader: shader.fragmentShader,
-		vertexShader: shader.vertexShader,
-
+		vertexShader: shader.vertexShader
 	} );
 
-	material.uniforms.tDiffuse.value = renderTarget.texture;
-	material.uniforms.color.value = color;
-	material.uniforms.textureMatrix.value = textureMatrix;
+	material.uniforms[ "tDiffuse" ].value = renderTarget.texture;
+	material.uniforms[ "color" ].value = color;
+	material.uniforms[ "textureMatrix" ].value = textureMatrix;
 
 	this.material = material;
 

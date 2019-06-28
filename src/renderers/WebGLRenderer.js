@@ -2568,7 +2568,7 @@ function WebGLRenderer( parameters ) {
 
 		var glFormat = utils.convert( dstTexture.format );
 		var glType = utils.convert( dstTexture.type );
-
+		_gl.pixelStorei( _gl.UNPACK_FLIP_Y_WEBGL, dstTexture.flipY);
 		this.setTexture2D( dstTexture, 0 );
 
 		if ( srcTexture.isDataTexture ) {
@@ -2580,7 +2580,6 @@ function WebGLRenderer( parameters ) {
 			_gl.texSubImage2D( _gl.TEXTURE_2D, level || 0, position.x, position.y, glFormat, glType, srcTexture.image );
 
 		}
-
 	};
 
 }

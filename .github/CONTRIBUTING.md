@@ -1,6 +1,6 @@
 
-# Help 
-#### The issues section is for bug reports and feature requests only. If you need help, please use [stackoverflow](http://stackoverflow.com/questions/tagged/three.js).
+# Help
+#### The issues section is for bug reports and feature requests only. If you need help, please use the [forum](http://discourse.threejs.org/) or [stackoverflow](http://stackoverflow.com/questions/tagged/three.js).
 ---
 # Bugs
 #### Before reporting a bug
@@ -14,7 +14,7 @@
 1. Specify the revision number of the three.js library where the bug occurred.
 2. Specify your browser version, operating system, and graphics card. (for example, Chrome 23.0.1271.95, Windows 7, Nvidia Quadro 2000M)
 3. Describe the problem in detail. Explain what happened, and what you expected would happen.
-4. Provide a small test-case (http://jsfiddle.net). [Here is a fiddle](http://jsfiddle.net/akmcv7Lh/) you can edit that runs the current version. [And here is a fiddle](http://jsfiddle.net/hw9rcLL8/) that uses the dev branch. If a test-case is not possible, provide a link to a live version of your application.
+4. Provide a small test-case (http://jsfiddle.net). [Here is a fiddle](https://jsfiddle.net/3foLr7sn/) you can edit that runs the current version. [And here is a fiddle](https://jsfiddle.net/qgu17w5o/) that uses the dev branch. If a test-case is not possible, provide a link to a live version of your application.
 5. If helpful, include a screenshot. Annotate the screenshot for clarity.
 
 ---
@@ -25,4 +25,5 @@
 2. Fork the repository on GitHub.
 3. Check the [Contribution Guidelines](https://github.com/mrdoob/three.js/wiki/How-to-contribute-to-three.js).
 4. Make changes to your clone of the repository.
-5. Submit a pull request. Don't include build files in the PR.
+5. If your changes leads to a change in examples, make a new screenshot with `npm run make-screenshot <example_name>`.
+6. Submit a pull request. Don't include build files in the PR.

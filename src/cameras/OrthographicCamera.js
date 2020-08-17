@@ -15,10 +15,10 @@ function OrthographicCamera( left, right, top, bottom, near, far ) {
 	this.zoom = 1;
 	this.view = null;
 
-	this.left = left;
-	this.right = right;
-	this.top = top;
-	this.bottom = bottom;
+	this.left = ( left !== undefined ) ? left : - 1;
+	this.right = ( right !== undefined ) ? right : 1;
+	this.top = ( top !== undefined ) ? top : 1;
+	this.bottom = ( bottom !== undefined ) ? bottom : - 1;
 
 	this.near = ( near !== undefined ) ? near : 0.1;
 	this.far = ( far !== undefined ) ? far : 2000;
@@ -105,19 +105,19 @@ OrthographicCamera.prototype = Object.assign( Object.create( Camera.prototype ),
 
 		if ( this.view !== null && this.view.enabled ) {
 
-			var zoomW = this.zoom / ( this.view.width / this.view.fullWidth );
-			var zoomH = this.zoom / ( this.view.height / this.view.fullHeight );
-			var scaleW = ( this.right - this.left ) / this.view.width;
-			var scaleH = ( this.top - this.bottom ) / this.view.height;
+			var scaleW = ( this.right - this.left ) / this.view.fullWidth / this.zoom;
+			var scaleH = ( this.top - this.bottom ) / this.view.fullHeight / this.zoom;
 
-			left += scaleW * ( this.view.offsetX / zoomW );
-			right = left + scaleW * ( this.view.width / zoomW );
-			top -= scaleH * ( this.view.offsetY / zoomH );
-			bottom = top - scaleH * ( this.view.height / zoomH );
+			left += scaleW * this.view.offsetX;
+			right = left + scaleW * this.view.width;
+			top -= scaleH * this.view.offsetY;
+			bottom = top - scaleH * this.view.height;
 
 		}
 
 		this.projectionMatrix.makeOrthographic( left, right, top, bottom, this.near, this.far );
+
+		this.projectionMatrixInverse.getInverse( this.projectionMatrix );
 
 	},
 

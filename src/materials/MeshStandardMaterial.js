@@ -1,3 +1,4 @@
+import { TangentSpaceNormalMap } from '../constants.js';
 import { Material } from './Material.js';
 import { Vector2 } from '../math/Vector2.js';
 import { Color } from '../math/Color.js';
@@ -27,6 +28,7 @@ import { Color } from '../math/Color.js';
  *  bumpScale: <float>,
  *
  *  normalMap: new THREE.Texture( <Image> ),
+ *  normalMapType: THREE.TangentSpaceNormalMap,
  *  normalScale: <Vector2>,
  *
  *  displacementMap: new THREE.Texture( <Image> ),
@@ -62,8 +64,8 @@ function MeshStandardMaterial( parameters ) {
 	this.type = 'MeshStandardMaterial';
 
 	this.color = new Color( 0xffffff ); // diffuse
-	this.roughness = 0.5;
-	this.metalness = 0.5;
+	this.roughness = 1.0;
+	this.metalness = 0.0;
 
 	this.map = null;
 
@@ -81,6 +83,7 @@ function MeshStandardMaterial( parameters ) {
 	this.bumpScale = 1;
 
 	this.normalMap = null;
+	this.normalMapType = TangentSpaceNormalMap;
 	this.normalScale = new Vector2( 1, 1 );
 
 	this.displacementMap = null;
@@ -106,6 +109,8 @@ function MeshStandardMaterial( parameters ) {
 	this.skinning = false;
 	this.morphTargets = false;
 	this.morphNormals = false;
+
+	this.vertexTangents = false;
 
 	this.setValues( parameters );
 
@@ -142,6 +147,7 @@ MeshStandardMaterial.prototype.copy = function ( source ) {
 	this.bumpScale = source.bumpScale;
 
 	this.normalMap = source.normalMap;
+	this.normalMapType = source.normalMapType;
 	this.normalScale.copy( source.normalScale );
 
 	this.displacementMap = source.displacementMap;
@@ -167,6 +173,8 @@ MeshStandardMaterial.prototype.copy = function ( source ) {
 	this.skinning = source.skinning;
 	this.morphTargets = source.morphTargets;
 	this.morphNormals = source.morphNormals;
+
+	this.vertexTangents = source.vertexTangents;
 
 	return this;
 

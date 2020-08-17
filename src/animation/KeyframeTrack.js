@@ -1,9 +1,3 @@
-import { StringKeyframeTrack } from './tracks/StringKeyframeTrack.js';
-import { BooleanKeyframeTrack } from './tracks/BooleanKeyframeTrack.js';
-import { QuaternionKeyframeTrack } from './tracks/QuaternionKeyframeTrack.js';
-import { ColorKeyframeTrack } from './tracks/ColorKeyframeTrack.js';
-import { VectorKeyframeTrack } from './tracks/VectorKeyframeTrack.js';
-import { NumberKeyframeTrack } from './tracks/NumberKeyframeTrack.js';
 import {
 	InterpolateLinear,
 	InterpolateSmooth,
@@ -36,52 +30,14 @@ function KeyframeTrack( name, times, values, interpolation ) {
 
 	this.setInterpolation( interpolation || this.DefaultInterpolation );
 
-	this.validate();
-	this.optimize();
-
 }
 
-// Static methods:
+// Static methods
 
 Object.assign( KeyframeTrack, {
 
 	// Serialization (in static context, because of constructor invocation
 	// and automatic invocation of .toJSON):
-
-	parse: function ( json ) {
-
-		if ( json.type === undefined ) {
-
-			throw new Error( 'THREE.KeyframeTrack: track type undefined, can not parse' );
-
-		}
-
-		var trackType = KeyframeTrack._getTrackTypeForValueTypeName( json.type );
-
-		if ( json.times === undefined ) {
-
-			var times = [], values = [];
-
-			AnimationUtils.flattenJSON( json.keys, times, values, 'value' );
-
-			json.times = times;
-			json.values = values;
-
-		}
-
-		// derived classes can define a static parse method
-		if ( trackType.parse !== undefined ) {
-
-			return trackType.parse( json );
-
-		} else {
-
-			// by default, we assume a constructor compatible with the base
-			return new trackType( json.name, json.times, json.values, json.interpolation );
-
-		}
-
-	},
 
 	toJSON: function ( track ) {
 
@@ -118,48 +74,6 @@ Object.assign( KeyframeTrack, {
 		json.type = track.ValueTypeName; // mandatory
 
 		return json;
-
-	},
-
-	_getTrackTypeForValueTypeName: function ( typeName ) {
-
-		switch ( typeName.toLowerCase() ) {
-
-			case 'scalar':
-			case 'double':
-			case 'float':
-			case 'number':
-			case 'integer':
-
-				return NumberKeyframeTrack;
-
-			case 'vector':
-			case 'vector2':
-			case 'vector3':
-			case 'vector4':
-
-				return VectorKeyframeTrack;
-
-			case 'color':
-
-				return ColorKeyframeTrack;
-
-			case 'quaternion':
-
-				return QuaternionKeyframeTrack;
-
-			case 'bool':
-			case 'boolean':
-
-				return BooleanKeyframeTrack;
-
-			case 'string':
-
-				return StringKeyframeTrack;
-
-		}
-
-		throw new Error( 'THREE.KeyframeTrack: Unsupported typeName: ' + typeName );
 
 	}
 
@@ -240,11 +154,13 @@ Object.assign( KeyframeTrack.prototype, {
 			}
 
 			console.warn( 'THREE.KeyframeTrack:', message );
-			return;
+			return this;
 
 		}
 
 		this.createInterpolant = factoryMethod;
+
+		return this;
 
 	},
 
@@ -338,7 +254,12 @@ Object.assign( KeyframeTrack.prototype, {
 		if ( from !== 0 || to !== nKeys ) {
 
 			// empty tracks are forbidden, so keep at least one keyframe
-			if ( from >= to ) to = Math.max( to, 1 ), from = to - 1;
+			if ( from >= to ) {
+
+				to = Math.max( to, 1 );
+				from = to - 1;
+
+			}
 
 			var stride = this.getValueSize();
 			this.times = AnimationUtils.arraySlice( times, from, to );
@@ -431,8 +352,9 @@ Object.assign( KeyframeTrack.prototype, {
 	// (0,0,0,0,1,1,1,0,0,0,0,0,0,0) --> (0,0,1,1,0,0)
 	optimize: function () {
 
-		var times = this.times,
-			values = this.values,
+		// times or values may be shared with other tracks, so overwriting is unsafe
+		var times = AnimationUtils.arraySlice( this.times ),
+			values = AnimationUtils.arraySlice( this.values ),
 			stride = this.getValueSize(),
 
 			smoothInterpolation = this.getInterpolation() === InterpolateSmooth,
@@ -527,9 +449,29 @@ Object.assign( KeyframeTrack.prototype, {
 			this.times = AnimationUtils.arraySlice( times, 0, writeIndex );
 			this.values = AnimationUtils.arraySlice( values, 0, writeIndex * stride );
 
+		} else {
+
+			this.times = times;
+			this.values = values;
+
 		}
 
 		return this;
+
+	},
+
+	clone: function () {
+
+		var times = AnimationUtils.arraySlice( this.times, 0 );
+		var values = AnimationUtils.arraySlice( this.values, 0 );
+
+		var TypedKeyframeTrack = this.constructor;
+		var track = new TypedKeyframeTrack( this.name, times, values );
+
+		// Interpolant argument to constructor is not saved, so copy the factory method directly.
+		track.createInterpolant = this.createInterpolant;
+
+		return track;
 
 	}
 

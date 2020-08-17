@@ -15,7 +15,7 @@ function PointLightHelper( light, sphereSize, color ) {
 	this.color = color;
 
 	var geometry = new SphereBufferGeometry( sphereSize, 4, 2 );
-	var material = new MeshBasicMaterial( { wireframe: true, fog: false } );
+	var material = new MeshBasicMaterial( { wireframe: true, fog: false, toneMapped: false } );
 
 	Mesh.call( this, geometry, material );
 
@@ -26,7 +26,7 @@ function PointLightHelper( light, sphereSize, color ) {
 
 
 	/*
-	var distanceGeometry = new THREE.IcosahedronGeometry( 1, 2 );
+	var distanceGeometry = new THREE.IcosahedronBufferGeometry( 1, 2 );
 	var distanceMaterial = new THREE.MeshBasicMaterial( { color: hexColor, fog: false, wireframe: true, opacity: 0.1, transparent: true } );
 
 	this.lightSphere = new THREE.Mesh( bulbGeometry, bulbMaterial );

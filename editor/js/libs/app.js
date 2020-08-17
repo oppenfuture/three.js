@@ -1,3 +1,4 @@
+
 /**
  * @author mrdoob / http://mrdoob.com/
  */
@@ -6,32 +7,31 @@ var APP = {
 
 	Player: function () {
 
+		var renderer = new THREE.WebGLRenderer( { antialias: true } );
+		renderer.setPixelRatio( window.devicePixelRatio );
+		renderer.outputEncoding = THREE.sRGBEncoding;
+
 		var loader = new THREE.ObjectLoader();
-		var camera, scene, renderer;
+		var camera, scene;
+
+		var vrButton = VRButton.createButton( renderer );
 
 		var events = {};
 
 		var dom = document.createElement( 'div' );
-
+		dom.appendChild( renderer.domElement );
+    console.log();
 		this.dom = dom;
 
 		this.width = 500;
 		this.height = 500;
-
+    console.log(renderer);
 		this.load = function ( json ) {
-
-			renderer = new THREE.WebGLRenderer( { antialias: true } );
-			renderer.setClearColor( 0x000000 );
-			renderer.setPixelRatio( window.devicePixelRatio );
 
 			var project = json.project;
 
-			if ( project.gammaInput ) renderer.gammaInput = true;
-			if ( project.gammaOutput ) renderer.gammaOutput = true;
-			if ( project.shadows ) renderer.shadowMap.enabled = true;
-			if ( project.vr ) renderer.vr.enabled = true;
-
-			dom.appendChild( renderer.domElement );
+			renderer.shadowMap.enabled = project.shadows === true;
+			renderer.xr.enabled = project.vr === true;
 
 			this.setScene( loader.parse( json.scene ) );
 			this.setCamera( loader.parse( json.camera ) );
@@ -111,12 +111,6 @@ var APP = {
 			camera.aspect = this.width / this.height;
 			camera.updateProjectionMatrix();
 
-			if ( renderer.vr.enabled ) {
-
-				dom.appendChild( WEBVR.createButton( renderer ) );
-
-			}
-
 		};
 
 		this.setScene = function ( value ) {
@@ -155,9 +149,11 @@ var APP = {
 
 		}
 
-		var prevTime;
+		var time, prevTime;
 
-		function animate( time ) {
+		function animate() {
+
+			time = performance.now();
 
 			try {
 
@@ -177,6 +173,8 @@ var APP = {
 
 		this.play = function () {
 
+			if ( renderer.xr.enabled ) dom.append( vrButton );
+
 			prevTime = performance.now();
 
 			document.addEventListener( 'keydown', onDocumentKeyDown );
@@ -190,11 +188,13 @@ var APP = {
 
 			dispatch( events.start, arguments );
 
-			renderer.animate( animate );
+			renderer.setAnimationLoop( animate );
 
 		};
 
 		this.stop = function () {
+
+			if ( renderer.xr.enabled ) vrButton.remove();
 
 			document.removeEventListener( 'keydown', onDocumentKeyDown );
 			document.removeEventListener( 'keyup', onDocumentKeyUp );
@@ -207,23 +207,16 @@ var APP = {
 
 			dispatch( events.stop, arguments );
 
-			renderer.animate( null );
+			renderer.setAnimationLoop( null );
 
 		};
 
 		this.dispose = function () {
 
-			while ( dom.children.length ) {
-
-				dom.removeChild( dom.firstChild );
-
-			}
-
 			renderer.dispose();
 
 			camera = undefined;
 			scene = undefined;
-			renderer = undefined;
 
 		};
 
@@ -280,3 +273,5 @@ var APP = {
 	}
 
 };
+
+export { APP };

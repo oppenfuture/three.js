@@ -6080,6 +6080,7 @@
 
 		this.type = 'Scene';
 
+		this.bgToneMapped = false;
 		this.background = null;
 		this.environment = null;
 		this.fog = null;
@@ -6106,6 +6107,7 @@
 
 			Object3D.prototype.copy.call( this, source, recursive );
 
+			this.bgToneMapped = source.bgToneMapped;
 			if ( source.background !== null ) { this.background = source.background.clone(); }
 			if ( source.environment !== null ) { this.environment = source.environment.clone(); }
 			if ( source.fog !== null ) { this.fog = source.fog.clone(); }
@@ -6126,6 +6128,7 @@
 			if ( this.background !== null ) { data.object.background = this.background.toJSON( meta ); }
 			if ( this.environment !== null ) { data.object.environment = this.environment.toJSON( meta ); }
 			if ( this.fog !== null ) { data.object.fog = this.fog.toJSON(); }
+			data.object.bgToneMapped = this.bgToneMapped.toJSON();
 
 			return data;
 
@@ -15446,11 +15449,12 @@
 		var currentBackground = null;
 		var currentBackgroundVersion = 0;
 		var currentTonemapping = null;
+		var currentBgToneMapped = null;
 
 		function render( renderList, scene, camera, forceClear ) {
 
 			var background = scene.background;
-
+			var bgToneMapped = scene.bgToneMapped;
 			// Ignore background in AR
 			// TODO: Reconsider this.
 
@@ -15524,18 +15528,21 @@
 
 				var texture = background.isWebGLCubeRenderTarget ? background.texture : background;
 
+				boxMesh.material.toneMapped = bgToneMapped;
 				boxMesh.material.uniforms.envMap.value = texture;
 				boxMesh.material.uniforms.flipEnvMap.value = texture.isCubeTexture ? - 1 : 1;
 
 				if ( currentBackground !== background ||
 					currentBackgroundVersion !== texture.version ||
-					currentTonemapping !== renderer.toneMapping ) {
+					currentTonemapping !== renderer.toneMapping ||
+					currentBgToneMapped !== bgToneMapped ) {
 
 					boxMesh.material.needsUpdate = true;
 
 					currentBackground = background;
 					currentBackgroundVersion = texture.version;
 					currentTonemapping = renderer.toneMapping;
+					currentBgToneMapped = bgToneMapped;
 
 				}
 
@@ -15577,6 +15584,7 @@
 
 				}
 
+				planeMesh.material.toneMapped = bgToneMapped;
 				planeMesh.material.uniforms.t2D.value = background;
 
 				if ( background.matrixAutoUpdate === true ) {
@@ -15589,13 +15597,15 @@
 
 				if ( currentBackground !== background ||
 					currentBackgroundVersion !== background.version ||
-					currentTonemapping !== renderer.toneMapping ) {
+					currentTonemapping !== renderer.toneMapping ||
+					currentBgToneMapped !== bgToneMapped ) {
 
 					planeMesh.material.needsUpdate = true;
 
 					currentBackground = background;
 					currentBackgroundVersion = background.version;
 					currentTonemapping = renderer.toneMapping;
+					currentBgToneMapped = bgToneMapped;
 
 				}
 
@@ -32488,6 +32498,8 @@
 	CircleBufferGeometry.prototype = Object.create( BufferGeometry.prototype );
 	CircleBufferGeometry.prototype.constructor = CircleBufferGeometry;
 
+
+
 	var Geometries = /*#__PURE__*/Object.freeze({
 		__proto__: null,
 		WireframeGeometry: WireframeGeometry,
@@ -33531,6 +33543,8 @@
 		return this;
 
 	};
+
+
 
 	var Materials = /*#__PURE__*/Object.freeze({
 		__proto__: null,
@@ -37850,6 +37864,8 @@
 		return this;
 
 	};
+
+
 
 	var Curves = /*#__PURE__*/Object.freeze({
 		__proto__: null,

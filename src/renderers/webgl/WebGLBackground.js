@@ -22,11 +22,12 @@ function WebGLBackground( renderer, state, objects, premultipliedAlpha ) {
 	var currentBackground = null;
 	var currentBackgroundVersion = 0;
 	var currentTonemapping = null;
+	var currentBgToneMapped = null;
 
 	function render( renderList, scene, camera, forceClear ) {
 
 		var background = scene.background;
-
+		var bgToneMapped = scene.bgToneMapped;
 		// Ignore background in AR
 		// TODO: Reconsider this.
 
@@ -100,18 +101,21 @@ function WebGLBackground( renderer, state, objects, premultipliedAlpha ) {
 
 			var texture = background.isWebGLCubeRenderTarget ? background.texture : background;
 
+			boxMesh.material.toneMapped = bgToneMapped;
 			boxMesh.material.uniforms.envMap.value = texture;
 			boxMesh.material.uniforms.flipEnvMap.value = texture.isCubeTexture ? - 1 : 1;
 
 			if ( currentBackground !== background ||
 				currentBackgroundVersion !== texture.version ||
-				currentTonemapping !== renderer.toneMapping ) {
+				currentTonemapping !== renderer.toneMapping ||
+				currentBgToneMapped !== bgToneMapped ) {
 
 				boxMesh.material.needsUpdate = true;
 
 				currentBackground = background;
 				currentBackgroundVersion = texture.version;
 				currentTonemapping = renderer.toneMapping;
+				currentBgToneMapped = bgToneMapped;
 
 			}
 
@@ -153,6 +157,7 @@ function WebGLBackground( renderer, state, objects, premultipliedAlpha ) {
 
 			}
 
+			planeMesh.material.toneMapped = bgToneMapped;
 			planeMesh.material.uniforms.t2D.value = background;
 
 			if ( background.matrixAutoUpdate === true ) {
@@ -165,13 +170,15 @@ function WebGLBackground( renderer, state, objects, premultipliedAlpha ) {
 
 			if ( currentBackground !== background ||
 				currentBackgroundVersion !== background.version ||
-				currentTonemapping !== renderer.toneMapping ) {
+				currentTonemapping !== renderer.toneMapping ||
+				currentBgToneMapped !== bgToneMapped ) {
 
 				planeMesh.material.needsUpdate = true;
 
 				currentBackground = background;
 				currentBackgroundVersion = background.version;
 				currentTonemapping = renderer.toneMapping;
+				currentBgToneMapped = bgToneMapped;
 
 			}
 

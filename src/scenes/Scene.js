@@ -10,6 +10,7 @@ function Scene() {
 
 	this.type = 'Scene';
 
+	this.bgToneMapped = false;
 	this.background = null;
 	this.environment = null;
 	this.fog = null;
@@ -36,6 +37,7 @@ Scene.prototype = Object.assign( Object.create( Object3D.prototype ), {
 
 		Object3D.prototype.copy.call( this, source, recursive );
 
+		this.bgToneMapped = source.bgToneMapped;
 		if ( source.background !== null ) this.background = source.background.clone();
 		if ( source.environment !== null ) this.environment = source.environment.clone();
 		if ( source.fog !== null ) this.fog = source.fog.clone();
@@ -56,6 +58,7 @@ Scene.prototype = Object.assign( Object.create( Object3D.prototype ), {
 		if ( this.background !== null ) data.object.background = this.background.toJSON( meta );
 		if ( this.environment !== null ) data.object.environment = this.environment.toJSON( meta );
 		if ( this.fog !== null ) data.object.fog = this.fog.toJSON();
+		data.object.bgToneMapped = this.bgToneMapped.toJSON();
 
 		return data;
 

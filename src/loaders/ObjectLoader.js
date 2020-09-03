@@ -917,6 +917,8 @@ ObjectLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
 		if ( data.shadow ) {
 
 			if ( data.shadow.bias !== undefined ) object.shadow.bias = data.shadow.bias;
+			if ( data.shadow.strength !== undefined ) object.shadow.strength = data.shadow.strength;
+			if ( data.shadow.quality !== undefined ) object.shadow.quality = data.shadow.quality;
 			if ( data.shadow.radius !== undefined ) object.shadow.radius = data.shadow.radius;
 			if ( data.shadow.mapSize !== undefined ) object.shadow.mapSize.fromArray( data.shadow.mapSize );
 			if ( data.shadow.camera !== undefined ) object.shadow.camera = this.parseObject( data.shadow.camera );

@@ -70,7 +70,7 @@ IncidentLight directLight;
 
 		#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_SPOT_LIGHT_SHADOWS )
 		spotLightShadow = spotLightShadows[ i ];
-		directLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotShadowCoord[ i ] ) : 1.0;
+		directLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotShadowCoord[ i ], 1 ) : 1.0;
 		#endif
 
 		RE_Direct( directLight, geometry, material, reflectedLight );
@@ -96,7 +96,8 @@ IncidentLight directLight;
 
 		#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_DIR_LIGHT_SHADOWS )
 		directionalLightShadow = directionalLightShadows[ i ];
-		directLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;
+		directLight.color *= all( bvec2( directLight.visible, receiveShadow ) )
+			? min((1.0 - directionalLightShadow.shadowStrength) + getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ], directionalLightShadow.shadowQuality ), 1.0) : 1.0;
 		#endif
 
 		RE_Direct( directLight, geometry, material, reflectedLight );

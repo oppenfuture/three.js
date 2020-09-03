@@ -67,6 +67,8 @@ vec3 getAmbientLightIrradiance( const in vec3 ambientLightColor ) {
 
 		struct DirectionalLightShadow {
 			float shadowBias;
+			float shadowStrength;
+			int shadowQuality;
 			float shadowRadius;
 			vec2 shadowMapSize;
 		};

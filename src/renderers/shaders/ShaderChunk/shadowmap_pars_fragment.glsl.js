@@ -1,6 +1,51 @@
 export default /* glsl */`
 #ifdef USE_SHADOWMAP
 
+	#ifdef SHADOWMAP_TYPE_PCF_POISSON
+
+		#define NUM_SAMPLES 9
+		#define NUM_RINGS 7
+		#define MAX_NUM_SAMPLES 27
+		#define MAX_NUM_RINGS 16
+		#define MAX_QUALITY 10
+
+		vec2 poissonDisk[MAX_NUM_SAMPLES];
+
+		void initPoissonSamplesQuality( const in vec2 randomSeed, const in int numRings, const in int numSamples ) {
+			float ANGLE_STEP = PI2 * float( numRings ) / float( numSamples );
+			float INV_NUM_SAMPLES = 1.0 / float( numSamples );
+
+			// jsfiddle that shows sample pattern: https://jsfiddle.net/a16ff1p7/
+			float angle = rand( randomSeed ) * PI2;
+			float radius = INV_NUM_SAMPLES;
+			float radiusStep = radius;
+
+			for( int i = 0; i < MAX_NUM_SAMPLES; i ++ ) {
+				if ( i > numSamples ) break;
+				poissonDisk[i] = vec2( cos( angle ), sin( angle ) ) * pow( radius, 0.75 );
+				radius += radiusStep;
+				angle += ANGLE_STEP;
+			}
+		}
+
+		void initPoissonSamples( const in vec2 randomSeed ) {
+			float ANGLE_STEP = PI2 * float( NUM_RINGS ) / float( NUM_SAMPLES );
+			float INV_NUM_SAMPLES = 1.0 / float( NUM_SAMPLES );
+
+			// jsfiddle that shows sample pattern: https://jsfiddle.net/a16ff1p7/
+			float angle = rand( randomSeed ) * PI2;
+			float radius = INV_NUM_SAMPLES;
+			float radiusStep = radius;
+
+			for( int i = 0; i < NUM_SAMPLES; i ++ ) {
+				poissonDisk[i] = vec2( cos( angle ), sin( angle ) ) * pow( radius, 0.75 );
+				radius += radiusStep;
+				angle += ANGLE_STEP;
+			}
+		}
+
+	#endif
+
 	#if NUM_DIR_LIGHT_SHADOWS > 0
 
 		uniform sampler2D directionalShadowMap[ NUM_DIR_LIGHT_SHADOWS ];
@@ -63,7 +108,7 @@ export default /* glsl */`
 
 	}
 
-	float getShadow( sampler2D shadowMap, vec2 shadowMapSize, float shadowBias, float shadowRadius, vec4 shadowCoord ) {
+	float getShadow( sampler2D shadowMap, vec2 shadowMapSize, float shadowBias, float shadowRadius, vec4 shadowCoord, int quality ) {
 
 		float shadow = 1.0;
 
@@ -115,6 +160,20 @@ export default /* glsl */`
 				texture2DCompare( shadowMap, shadowCoord.xy + vec2( dx1, dy1 ), shadowCoord.z )
 			) * ( 1.0 / 17.0 );
 
+		#elif defined( SHADOWMAP_TYPE_PCF_POISSON )
+			// int numRings = MAX_NUM_RINGS - (MAX_QUALITY - quality);
+			// int numSamples = MAX_NUM_SAMPLES - 2 * (MAX_QUALITY - quality);
+			initPoissonSamples( shadowCoord.xy );
+
+			float sum = 0.0;
+			vec2 texelSize = vec2( 1.0 ) / shadowMapSize;
+			for( int i = 0; i < NUM_SAMPLES; i ++ ) {
+				// if ( i > numSamples ) break;
+				sum += texture2DCompare( shadowMap, shadowCoord.xy + poissonDisk[ i ] * texelSize.x * shadowRadius, shadowCoord.z );
+				sum += texture2DCompare( shadowMap, shadowCoord.xy + -poissonDisk[ i ].yx * texelSize.x * shadowRadius, shadowCoord.z );
+			}
+			shadow = sum / ( 2.0 * float( NUM_SAMPLES ) );
+
 		#elif defined( SHADOWMAP_TYPE_PCF_SOFT )
 
 			vec2 texelSize = vec2( 1.0 ) / shadowMapSize;
@@ -130,22 +189,22 @@ export default /* glsl */`
 				texture2DCompare( shadowMap, uv + vec2( dx, 0.0 ), shadowCoord.z ) +
 				texture2DCompare( shadowMap, uv + vec2( 0.0, dy ), shadowCoord.z ) +
 				texture2DCompare( shadowMap, uv + texelSize, shadowCoord.z ) +
-				mix( texture2DCompare( shadowMap, uv + vec2( -dx, 0.0 ), shadowCoord.z ), 
+				mix( texture2DCompare( shadowMap, uv + vec2( -dx, 0.0 ), shadowCoord.z ),
 					 texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, 0.0 ), shadowCoord.z ),
 					 f.x ) +
-				mix( texture2DCompare( shadowMap, uv + vec2( -dx, dy ), shadowCoord.z ), 
+				mix( texture2DCompare( shadowMap, uv + vec2( -dx, dy ), shadowCoord.z ),
 					 texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, dy ), shadowCoord.z ),
 					 f.x ) +
-				mix( texture2DCompare( shadowMap, uv + vec2( 0.0, -dy ), shadowCoord.z ), 
+				mix( texture2DCompare( shadowMap, uv + vec2( 0.0, -dy ), shadowCoord.z ),
 					 texture2DCompare( shadowMap, uv + vec2( 0.0, 2.0 * dy ), shadowCoord.z ),
 					 f.y ) +
-				mix( texture2DCompare( shadowMap, uv + vec2( dx, -dy ), shadowCoord.z ), 
+				mix( texture2DCompare( shadowMap, uv + vec2( dx, -dy ), shadowCoord.z ),
 					 texture2DCompare( shadowMap, uv + vec2( dx, 2.0 * dy ), shadowCoord.z ),
 					 f.y ) +
-				mix( mix( texture2DCompare( shadowMap, uv + vec2( -dx, -dy ), shadowCoord.z ), 
+				mix( mix( texture2DCompare( shadowMap, uv + vec2( -dx, -dy ), shadowCoord.z ),
 						  texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, -dy ), shadowCoord.z ),
 						  f.x ),
-					 mix( texture2DCompare( shadowMap, uv + vec2( -dx, 2.0 * dy ), shadowCoord.z ), 
+					 mix( texture2DCompare( shadowMap, uv + vec2( -dx, 2.0 * dy ), shadowCoord.z ),
 						  texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, 2.0 * dy ), shadowCoord.z ),
 						  f.x ),
 					 f.y )
@@ -253,7 +312,7 @@ export default /* glsl */`
 		// bd3D = base direction 3D
 		vec3 bd3D = normalize( lightToPosition );
 
-		#if defined( SHADOWMAP_TYPE_PCF ) || defined( SHADOWMAP_TYPE_PCF_SOFT ) || defined( SHADOWMAP_TYPE_VSM )
+		#if defined( SHADOWMAP_TYPE_PCF ) || defined( SHADOWMAP_TYPE_PCF_POISSON )|| defined( SHADOWMAP_TYPE_PCF_SOFT ) || defined( SHADOWMAP_TYPE_VSM )
 
 			vec2 offset = vec2( - 1, 1 ) * shadowRadius * texelSize.y;
 

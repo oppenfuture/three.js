@@ -14,6 +14,8 @@ function LightShadow( camera ) {
 
 	this.bias = 0;
 	this.radius = 1;
+	this.strength = 1;
+	this.quality = 5;
 
 	this.mapSize = new Vector2( 512, 512 );
 
@@ -102,6 +104,8 @@ Object.assign( LightShadow.prototype, {
 
 		this.bias = source.bias;
 		this.radius = source.radius;
+		this.strength = source.strength;
+		this.quality = source.quality;
 
 		this.mapSize.copy( source.mapSize );
 
@@ -120,6 +124,8 @@ Object.assign( LightShadow.prototype, {
 		var object = {};
 
 		if ( this.bias !== 0 ) object.bias = this.bias;
+		if ( this.strength !== 1 ) object.strength = this.strength;
+		if ( this.quality !== 5 ) object.quality = this.quality;
 		if ( this.radius !== 1 ) object.radius = this.radius;
 		if ( this.mapSize.x !== 512 || this.mapSize.y !== 512 ) object.mapSize = this.mapSize.toArray();
 

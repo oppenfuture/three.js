@@ -119,6 +119,8 @@ var UniformsLib = {
 
 		directionalLightShadows: { value: [], properties: {
 			shadowBias: {},
+			shadowStrength: {},
+			shadowQuality: {},
 			shadowRadius: {},
 			shadowMapSize: {}
 		} },

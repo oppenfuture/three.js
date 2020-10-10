@@ -103,6 +103,8 @@ function ShadowUniformsCache() {
 				case 'DirectionalLight':
 					uniforms = {
 						shadowBias: 0,
+						shadowStrength: 1,
+						shadowQuality: 5,
 						shadowRadius: 1,
 						shadowMapSize: new Vector2()
 					};
@@ -258,6 +260,8 @@ function WebGLLights() {
 					var shadowUniforms = shadowCache.get( light );
 
 					shadowUniforms.shadowBias = shadow.bias;
+					shadowUniforms.shadowStrength = shadow.strength;
+					shadowUniforms.shadowQuality = shadow.quality;
 					shadowUniforms.shadowRadius = shadow.radius;
 					shadowUniforms.shadowMapSize = shadow.mapSize;
 

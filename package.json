@@ -1,14 +1,16 @@
 {
-  "name": "three",
+  "name": "@oppentech/three",
   "version": "0.136.0",
   "description": "JavaScript 3D library",
   "main": "build/three.js",
   "module": "build/three.module.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mrdoob/three.js"
+    "url": "https://github.com/oppenfuture/three.js"
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "src/Three.js"
+  ],
   "files": [
     "build/three.js",
     "build/three.min.js",
@@ -106,7 +108,7 @@
   "author": "mrdoob",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mrdoob/three.js/issues"
+    "url": "https://github.com/oppenfuture/three.js/issues"
   },
   "homepage": "https://threejs.org/",
   "devDependencies": {

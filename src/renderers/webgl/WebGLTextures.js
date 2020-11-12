@@ -4,7 +4,7 @@
 
 import { LinearFilter, LinearMipmapLinearFilter, LinearMipmapNearestFilter, NearestFilter, NearestMipmapLinearFilter, NearestMipmapNearestFilter, RGBFormat, RGBAFormat, DepthFormat, DepthStencilFormat, UnsignedShortType, UnsignedIntType, UnsignedInt248Type, FloatType, HalfFloatType, MirroredRepeatWrapping, ClampToEdgeWrapping, RepeatWrapping } from '../../constants.js';
 import { MathUtils } from '../../math/MathUtils.js';
-
+import { platform } from '../../platform'
 function WebGLTextures( _gl, extensions, state, properties, capabilities, utils, info ) {
 
 	var isWebGL2 = capabilities.isWebGL2;
@@ -39,7 +39,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 		return useOffscreenCanvas ?
 			new OffscreenCanvas( width, height ) :
-			document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
+			platform.document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
 
 	}
 
@@ -62,7 +62,6 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 			// only perform resize for certain image types
 
 			if ( ( typeof HTMLImageElement !== 'undefined' && image instanceof HTMLImageElement ) ||
-				( typeof HTMLCanvasElement !== 'undefined' && image instanceof HTMLCanvasElement ) ||
 				( typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap ) ) {
 
 				var floor = needsPowerOfTwo ? MathUtils.floorPowerOfTwo : Math.floor;

@@ -3,6 +3,7 @@
  * @author alteredq / http://alteredqualia.com/
  * @author szimek / https://github.com/szimek/
  */
+import { platform } from '../platform'
 
 var _canvas;
 
@@ -22,7 +23,7 @@ var ImageUtils = {
 
 		} else {
 
-			if ( _canvas === undefined ) _canvas = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
+			if ( _canvas === undefined ) _canvas = platform.document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
 
 			_canvas.width = image.width;
 			_canvas.height = image.height;

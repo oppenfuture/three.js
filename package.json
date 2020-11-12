@@ -1,5 +1,5 @@
 {
-  "name": "three",
+  "name": "@oppentech/three",
   "version": "0.115.0",
   "description": "JavaScript 3D library",
   "main": "build/three.js",
@@ -9,6 +9,9 @@
     "type": "git",
     "url": "https://github.com/mrdoob/three.js"
   },
+  "sideEffects":[
+    "src/Three.js"
+  ],
   "files": [
     "build/three.js",
     "build/three.min.js",

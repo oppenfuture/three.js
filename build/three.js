@@ -296,6 +296,20 @@
 	var DynamicCopyUsage = 35050;
 	var StreamCopyUsage = 35042;
 
+	exports.platform = {
+	  XMLHttpRequest: XMLHttpRequest,
+	  updateplatform: function updateplatform(params){
+	    this.window = params.window;
+	    this.document = params.document;
+	    this.XMLHttpRequest = params.XMLHttpRequest;
+	    this.atob = params.atob;
+	  }
+	};
+
+	if(window && window.window) {
+	  exports.platform = window;
+	}
+
 	/**
 	 * https://github.com/mrdoob/eventdispatcher.js/
 	 */
@@ -1451,7 +1465,7 @@
 
 			} else {
 
-				if ( _canvas === undefined ) { _canvas = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' ); }
+				if ( _canvas === undefined ) { _canvas = exports.platform.document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' ); }
 
 				_canvas.width = image.width;
 				_canvas.height = image.height;
@@ -21299,7 +21313,6 @@
 	/**
 	 * @author mrdoob / http://mrdoob.com/
 	 */
-
 	function WebGLTextures( _gl, extensions, state, properties, capabilities, utils, info ) {
 
 		var isWebGL2 = capabilities.isWebGL2;
@@ -21334,7 +21347,7 @@
 
 			return useOffscreenCanvas ?
 				new OffscreenCanvas( width, height ) :
-				document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
+				exports.platform.document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
 
 		}
 
@@ -21357,7 +21370,6 @@
 				// only perform resize for certain image types
 
 				if ( ( typeof HTMLImageElement !== 'undefined' && image instanceof HTMLImageElement ) ||
-					( typeof HTMLCanvasElement !== 'undefined' && image instanceof HTMLCanvasElement ) ||
 					( typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap ) ) {
 
 					var floor = needsPowerOfTwo ? MathUtils.floorPowerOfTwo : Math.floor;
@@ -23361,7 +23373,7 @@
 
 		parameters = parameters || {};
 
-		var _canvas = parameters.canvas !== undefined ? parameters.canvas : document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' ),
+		var _canvas = parameters.canvas !== undefined ? parameters.canvas : exports.platform.document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' ),
 			_context = parameters.context !== undefined ? parameters.context : null,
 
 			_alpha = parameters.alpha !== undefined ? parameters.alpha : false,
@@ -24408,7 +24420,7 @@
 		var animation = new WebGLAnimation();
 		animation.setAnimationLoop( onAnimationFrame );
 
-		if ( typeof window !== 'undefined' ) { animation.setContext( window ); }
+		if ( typeof exports.platform.window !== 'undefined' ) { animation.setContext( exports.platform.window ); }
 
 		this.setAnimationLoop = function ( callback ) {
 
@@ -35727,7 +35739,7 @@
 
 				data = decodeURIComponent( data );
 
-				if ( isBase64 ) { data = atob( data ); }
+				if ( isBase64 ) { data = exports.platform.atob( data ); }
 
 				try {
 
@@ -35817,7 +35829,7 @@
 
 				} );
 
-				var request = new XMLHttpRequest();
+				var request = new exports.platform.XMLHttpRequest();
 
 				request.open( 'GET', url, true );
 
@@ -36233,6 +36245,7 @@
 	 * @author mrdoob / http://mrdoob.com/
 	 */
 
+
 	function ImageLoader( manager ) {
 
 		Loader.call( this, manager );
@@ -36269,7 +36282,7 @@
 
 			}
 
-			var image = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'img' );
+			var image = exports.platform.document.createElementNS( 'http://www.w3.org/1999/xhtml', 'img' );
 
 			function onImageLoad() {
 
@@ -41271,6 +41284,7 @@
 	 * @author mrdoob / http://mrdoob.com/
 	 */
 
+
 	var _context;
 
 	var AudioContext = {
@@ -41279,7 +41293,7 @@
 
 			if ( _context === undefined ) {
 
-				_context = new ( window.AudioContext || window.webkitAudioContext )();
+				_context = new ( exports.platform.window.AudioContext || window.webkitAudioContext )();
 
 			}
 

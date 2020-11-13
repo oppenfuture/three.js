@@ -297,7 +297,6 @@
 	var StreamCopyUsage = 35042;
 
 	exports.platform = {
-	  XMLHttpRequest: XMLHttpRequest,
 	  updateplatform: function updateplatform(params){
 	    this.window = params.window;
 	    this.document = params.document;

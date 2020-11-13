@@ -291,7 +291,6 @@ var DynamicCopyUsage = 35050;
 var StreamCopyUsage = 35042;
 
 let platform = {
-  XMLHttpRequest,
   updateplatform(params){
     this.window = params.window;
     this.document = params.document;

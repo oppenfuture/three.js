@@ -15,6 +15,7 @@ import {
 	LinearToneMapping,
 	BackSide
 } from '../constants.js';
+import { platform } from '../platform'
 import { MathUtils } from '../math/MathUtils.js';
 import { DataTexture } from '../textures/DataTexture.js';
 import { Frustum } from '../math/Frustum.js';
@@ -51,7 +52,7 @@ function WebGLRenderer( parameters ) {
 
 	parameters = parameters || {};
 
-	var _canvas = parameters.canvas !== undefined ? parameters.canvas : document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' ),
+	var _canvas = parameters.canvas !== undefined ? parameters.canvas : platform.document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' ),
 		_context = parameters.context !== undefined ? parameters.context : null,
 
 		_alpha = parameters.alpha !== undefined ? parameters.alpha : false,
@@ -1098,7 +1099,7 @@ function WebGLRenderer( parameters ) {
 	var animation = new WebGLAnimation();
 	animation.setAnimationLoop( onAnimationFrame );
 
-	if ( typeof window !== 'undefined' ) animation.setContext( window );
+	if ( typeof platform.window !== 'undefined' ) animation.setContext( platform.window );
 
 	this.setAnimationLoop = function ( callback ) {
 

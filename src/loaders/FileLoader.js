@@ -4,6 +4,7 @@
 
 import { Cache } from './Cache.js';
 import { Loader } from './Loader.js';
+import { platform } from '../platform'
 
 var loading = {};
 
@@ -74,7 +75,7 @@ FileLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
 
 			data = decodeURIComponent( data );
 
-			if ( isBase64 ) data = atob( data );
+			if ( isBase64 ) data = platform.atob( data );
 
 			try {
 
@@ -164,7 +165,7 @@ FileLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
 
 			} );
 
-			var request = new XMLHttpRequest();
+			var request = new platform.XMLHttpRequest();
 
 			request.open( 'GET', url, true );
 

@@ -1,6 +1,8 @@
 /**
  * @author mrdoob / http://mrdoob.com/
  */
+import { platform } from '../platform'
+
 
 var _context;
 
@@ -10,7 +12,7 @@ var AudioContext = {
 
 		if ( _context === undefined ) {
 
-			_context = new ( window.AudioContext || window.webkitAudioContext )();
+			_context = new ( platform.window.AudioContext || window.webkitAudioContext )();
 
 		}
 

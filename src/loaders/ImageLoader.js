@@ -4,6 +4,8 @@
 
 import { Cache } from './Cache.js';
 import { Loader } from './Loader.js';
+import { platform } from '../platform';
+
 
 function ImageLoader( manager ) {
 
@@ -41,7 +43,7 @@ ImageLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
 
 		}
 
-		var image = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'img' );
+		var image = platform.document.createElementNS( 'http://www.w3.org/1999/xhtml', 'img' );
 
 		function onImageLoad() {
 

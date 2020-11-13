@@ -1,5 +1,4 @@
 let platform = {
-  XMLHttpRequest,
   updateplatform(params){
     this.window = params.window;
     this.document = params.document;

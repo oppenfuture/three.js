@@ -28,6 +28,8 @@ let _tempTarget = null;
 
 let _renderer = null;
 
+let _needsUpdate = true;
+
 class RoughnessMipmapper {
 
 	constructor( renderer ) {
@@ -47,6 +49,7 @@ class RoughnessMipmapper {
 		if ( roughnessMap === null || normalMap === null || ! roughnessMap.generateMipmaps || material.userData.roughnessUpdated ) return;
 
 		material.userData.roughnessUpdated = true;
+		_needsUpdate = true;
 
 		let width = Math.max( roughnessMap.image.width, normalMap.image.width );
 		let height = Math.max( roughnessMap.image.height, normalMap.image.height );
@@ -60,6 +63,8 @@ class RoughnessMipmapper {
 		_renderer.autoClear = false;
 
 		if ( _tempTarget === null || _tempTarget.width !== width || _tempTarget.height !== height ) {
+
+			_needsUpdate = false;
 
 			if ( _tempTarget !== null ) _tempTarget.dispose();
 
@@ -119,6 +124,8 @@ class RoughnessMipmapper {
 			_renderer.render( _mesh, _flatCamera );
 
 			_renderer.copyFramebufferToTexture( position, material.roughnessMap, mip );
+
+			material.roughnessMap.needsUpdate = _needsUpdate;
 
 			_mipmapMaterial.uniforms.roughnessMap.value = material.roughnessMap;
 
@@ -252,7 +259,7 @@ function _getMipmapMaterial() {
 
 				float variance = roughnessToVariance( roughness );
 
-				vec3 avgNormal;
+				vec3 avgNormal = vec3(0, 0, 0);
 
 				for ( float x = - 1.0; x < 2.0; x += 2.0 ) {
 

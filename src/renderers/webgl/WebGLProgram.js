@@ -463,6 +463,7 @@ function WebGLProgram( renderer, cacheKey, parameters ) {
 			parameters.emissiveMap ? '#define USE_EMISSIVEMAP' : '',
 			parameters.bumpMap ? '#define USE_BUMPMAP' : '',
 			parameters.normalMap ? '#define USE_NORMALMAP' : '',
+			parameters.lowerNormalMap ? '#define USE_LOWER_8_BIT_NORMALMAP' : '',
 			( parameters.normalMap && parameters.objectSpaceNormalMap ) ? '#define OBJECTSPACE_NORMALMAP' : '',
 			( parameters.normalMap && parameters.tangentSpaceNormalMap ) ? '#define TANGENTSPACE_NORMALMAP' : '',
 
@@ -592,6 +593,7 @@ function WebGLProgram( renderer, cacheKey, parameters ) {
 			parameters.emissiveMap ? '#define USE_EMISSIVEMAP' : '',
 			parameters.bumpMap ? '#define USE_BUMPMAP' : '',
 			parameters.normalMap ? '#define USE_NORMALMAP' : '',
+			parameters.lowerNormalMap ? '#define USE_LOWER_8_BIT_NORMALMAP' : '',
 			( parameters.normalMap && parameters.objectSpaceNormalMap ) ? '#define OBJECTSPACE_NORMALMAP' : '',
 			( parameters.normalMap && parameters.tangentSpaceNormalMap ) ? '#define TANGENTSPACE_NORMALMAP' : '',
 			parameters.clearcoatMap ? '#define USE_CLEARCOATMAP' : '',

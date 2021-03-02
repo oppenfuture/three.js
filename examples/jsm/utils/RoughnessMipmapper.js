@@ -30,6 +30,7 @@ var RoughnessMipmapper = ( function () {
 	var _flatCamera = new OrthographicCamera( 0, 1, 0, 1, 0, 1 );
 	var _tempTarget = null;
 	var _renderer = null;
+	var _needsUpdate = true;
 
 	// constructor
 	var RoughnessMipmapper = function ( renderer ) {
@@ -50,6 +51,7 @@ var RoughnessMipmapper = ( function () {
                 material.userData.roughnessUpdated ) return;
 
 			material.userData.roughnessUpdated = true;
+			_needsUpdate = true;
 
 			var width = Math.max( roughnessMap.image.width, normalMap.image.width );
 			var height = Math.max( roughnessMap.image.height, normalMap.image.height );
@@ -69,7 +71,7 @@ var RoughnessMipmapper = ( function () {
 			}
 
 			if ( width !== roughnessMap.image.width || height !== roughnessMap.image.height ) {
-
+				_needsUpdate = false;
 				var newRoughnessTarget = new WebGLRenderTarget( width, height, {
 					minFilter: LinearMipMapLinearFilter,
 					depthBuffer: false,
@@ -103,6 +105,7 @@ var RoughnessMipmapper = ( function () {
 				_renderer.setRenderTarget( _tempTarget );
 				_renderer.render( _scene, _flatCamera );
 				_renderer.copyFramebufferToTexture( position, material.roughnessMap, mip );
+				material.roughnessMap.needsUpdate = _needsUpdate;
 				_mipmapMaterial.uniforms.roughnessMap.value = material.roughnessMap;
 
 			}
@@ -191,7 +194,7 @@ void main() {
     if (texelSize.x == 0.0) return;
     float roughness = gl_FragColor.g;
     float variance = roughnessToVariance(roughness);
-    vec3 avgNormal;
+    vec3 avgNormal = vec3(0, 0, 0);
     for (float x = -1.0; x < 2.0; x += 2.0) {
     for (float y = -1.0; y < 2.0; y += 2.0) {
         vec2 uv = vUv + vec2(x, y) * 0.25 * texelSize;

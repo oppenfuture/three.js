@@ -2069,6 +2069,10 @@ function WebGLRenderer( parameters ) {
 
 			uvScaleMap = material.normalMap;
 
+		} else if ( material.lowerNormalMap ) {
+
+			uvScaleMap = material.lowerNormalMap;
+
 		} else if ( material.bumpMap ) {
 
 			uvScaleMap = material.bumpMap;
@@ -2402,6 +2406,7 @@ function WebGLRenderer( parameters ) {
 			uniforms.normalMap.value = material.normalMap;
 			uniforms.normalScale.value.copy( material.normalScale );
 			if ( material.side === BackSide ) uniforms.normalScale.value.negate();
+			if ( material.lowerNormalMap ) uniforms.lowerNormalMap.value = material.lowerNormalMap;
 
 		}
 

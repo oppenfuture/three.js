@@ -228,6 +228,10 @@ var GLTFLoader = ( function () {
 
 					switch ( extensionName ) {
 
+						case EXTENSIONS.OFT_TEXTURE_HIGHPRECISION_NORMAL:
+							extensions[ extensionName ] = new GLTFHighPrecisionNormalExtension();
+							break;
+
 						case EXTENSIONS.KHR_LIGHTS_PUNCTUAL:
 							extensions[ extensionName ] = new GLTFLightsExtension( json );
 							break;
@@ -329,6 +333,7 @@ var GLTFLoader = ( function () {
 	/*********************************/
 
 	var EXTENSIONS = {
+		OFT_TEXTURE_HIGHPRECISION_NORMAL: 'OFT_texture_highPrecisionNormal',
 		KHR_BINARY_GLTF: 'KHR_binary_glTF',
 		KHR_DRACO_MESH_COMPRESSION: 'KHR_draco_mesh_compression',
 		KHR_LIGHTS_PUNCTUAL: 'KHR_lights_punctual',
@@ -356,6 +361,17 @@ var GLTFLoader = ( function () {
 
 		this.name = EXTENSIONS.MSFT_TEXTURE_DDS;
 		this.ddsLoader = ddsLoader;
+
+	}
+
+	/**
+	 * OppenFuture Tech texture high precision normal Extension
+	 *
+	 * Specification: https://github.com/oppenfuture/glTF/blob/hpnormal/extensions/2.0/Vendor/OFT_texture_highPrecisionNormal/README.md#lower8bittexture
+	 */
+	function GLTFHighPrecisionNormalExtension() {
+
+		this.name = EXTENSIONS.OFT_TEXTURE_HIGHPRECISION_NORMAL;
 
 	}
 
@@ -908,6 +924,7 @@ var GLTFLoader = ( function () {
 				'bumpMap',
 				'bumpScale',
 				'normalMap',
+				'lowerNormalMap',
 				'normalMapType',
 				'displacementMap',
 				'displacementScale',
@@ -997,6 +1014,7 @@ var GLTFLoader = ( function () {
 				material.bumpScale = 1;
 
 				material.normalMap = materialParams.normalMap === undefined ? null : materialParams.normalMap;
+				material.lowerNormalMap = materialParams.lowerNormalMap === undefined ? null : materialParams.lowerNormalMap;
 				material.normalMapType = TangentSpaceNormalMap;
 
 				if ( materialParams.normalScale ) material.normalScale = materialParams.normalScale;
@@ -2004,6 +2022,7 @@ var GLTFLoader = ( function () {
 					case 'emissiveMap':
 					case 'metalnessMap':
 					case 'normalMap':
+					case 'lowerNormalMap':
 					case 'roughnessMap':
 						texture.format = RGBFormat;
 						break;
@@ -2262,6 +2281,30 @@ var GLTFLoader = ( function () {
 			if ( materialDef.normalTexture.scale !== undefined ) {
 
 				materialParams.normalScale.set( materialDef.normalTexture.scale, materialDef.normalTexture.scale );
+
+			}
+
+			if ( materialDef.normalTexture.extensions !== undefined ) {
+
+				if ( extensions[ EXTENSIONS.OFT_TEXTURE_HIGHPRECISION_NORMAL ]
+					&& materialDef.normalTexture.extensions[ EXTENSIONS.OFT_TEXTURE_HIGHPRECISION_NORMAL ] ) {
+
+					var highPrecisionNormalExt = materialDef.normalTexture.extensions[ EXTENSIONS.OFT_TEXTURE_HIGHPRECISION_NORMAL ];
+					var lowerTexture = highPrecisionNormalExt.lower8BitTexture;
+					var texCoord = materialDef.normalTexture.texCoord || 0;
+					var lowerTexCoord = lowerTexture.texCoord || 0;
+					// The texCoord property of lower8BitTexture must be the same as the texCoord of normalTexture
+					if ( texCoord !== lowerTexCoord ) {
+
+						console.warn( 'The texCoord property of lower8BitTexture' + texCoord + 'are not same as the texCoord of normalTexture' + lowerTexCoord );
+
+					} else {
+
+						pending.push( parser.assignTexture( materialParams, 'lowerNormalMap', lowerTexture ) );
+
+					}
+
+				}
 
 			}
 

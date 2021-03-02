@@ -28,6 +28,7 @@ import { Color } from '../math/Color.js';
  *  bumpScale: <float>,
  *
  *  normalMap: new THREE.Texture( <Image> ),
+ *  lowerNormalMap: new THREE.Texture( <Image> ),
  *  normalMapType: THREE.TangentSpaceNormalMap,
  *  normalScale: <Vector2>,
  *
@@ -83,6 +84,7 @@ function MeshStandardMaterial( parameters ) {
 	this.bumpScale = 1;
 
 	this.normalMap = null;
+	this.lowerNormalMap = null;
 	this.normalMapType = TangentSpaceNormalMap;
 	this.normalScale = new Vector2( 1, 1 );
 
@@ -147,6 +149,7 @@ MeshStandardMaterial.prototype.copy = function ( source ) {
 	this.bumpScale = source.bumpScale;
 
 	this.normalMap = source.normalMap;
+	this.lowerNormalMap = source.lowerNormalMap;
 	this.normalMapType = source.normalMapType;
 	this.normalScale.copy( source.normalScale );
 

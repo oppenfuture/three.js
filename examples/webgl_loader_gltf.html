@@ -47,7 +47,6 @@
 
 						var envMap = pmremGenerator.fromEquirectangular( texture ).texture;
 						scene.background = envMap;
-						//scene.background = new THREE.Color( 0xffffff );
 						scene.environment = envMap;
 
 						texture.dispose();
@@ -61,7 +60,7 @@
 						var roughnessMipmapper = new RoughnessMipmapper( renderer );
 
 						var loader = new GLTFLoader().setPath( 'models/gltf/DamagedHelmet/glTF/' );
-						loader.load( 'DUANMU_bag.glb', function ( gltf ) {
+						loader.load( 'DamagedHelmet.gltf', function ( gltf ) {
 
 							gltf.scene.traverse( function ( child ) {
 
@@ -86,7 +85,7 @@
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
-				// renderer.toneMapping = THREE.ACESFilmicToneMapping;
+				renderer.toneMapping = THREE.ACESFilmicToneMapping;
 				renderer.toneMappingExposure = 0.8;
 				renderer.outputEncoding = THREE.sRGBEncoding;
 				container.appendChild( renderer.domElement );

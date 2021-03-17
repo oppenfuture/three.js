@@ -5,9 +5,9 @@ export default /* glsl */`
 		uniform float refractionRatio;
 	#endif
 
-	vec3 getLightProbeIndirectIrradiance( /*const in SpecularLightProbe specularLightProbe,*/ const in GeometricContext geometry, const in int maxMIPLevel ) {
+	vec3 getLightProbeIndirectIrradiance( /*const in SpecularLightProbe specularLightProbe,*/ const in vec3 geoNormal, const in int maxMIPLevel ) {
 
-		vec3 worldNormal = inverseTransformDirection( geometry.normal, viewMatrix );
+		vec3 worldNormal = inverseTransformDirection( geoNormal, viewMatrix );
 
 		#ifdef ENVMAP_TYPE_CUBE
 

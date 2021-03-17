@@ -15,14 +15,18 @@ export default /* glsl */`
  */
 
 GeometricContext geometry;
+vec3 splitGeoNormal;
+vec3 splitGeoClearcoatNormal;
 
 geometry.position = - vViewPosition;
 geometry.normal = normal;
+splitGeoNormal = normal;
 geometry.viewDir = ( isOrthographic ) ? vec3( 0, 0, 1 ) : normalize( vViewPosition );
 
 #ifdef CLEARCOAT
 
 	geometry.clearcoatNormal = clearcoatNormal;
+	splitGeoClearcoatNormal = clearcoatNormal;
 
 #endif
 
@@ -47,7 +51,7 @@ IncidentLight directLight;
 		directLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;
 		#endif
 
-		RE_Direct( directLight, geometry, material, reflectedLight );
+		RE_Direct( directLight, splitGeoNormal, splitGeoClearcoatNormal, geometry, material, reflectedLight );
 
 	}
 	#pragma unroll_loop_end
@@ -73,7 +77,7 @@ IncidentLight directLight;
 		directLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotShadowCoord[ i ] ) : 1.0;
 		#endif
 
-		RE_Direct( directLight, geometry, material, reflectedLight );
+		RE_Direct( directLight, splitGeoNormal, splitGeoClearcoatNormal, geometry, material, reflectedLight );
 
 	}
 	#pragma unroll_loop_end
@@ -99,7 +103,7 @@ IncidentLight directLight;
 		directLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;
 		#endif
 
-		RE_Direct( directLight, geometry, material, reflectedLight );
+		RE_Direct( directLight, splitGeoNormal, splitGeoClearcoatNormal, geometry, material, reflectedLight );
 
 	}
 	#pragma unroll_loop_end
@@ -114,7 +118,7 @@ IncidentLight directLight;
 	for ( int i = 0; i < NUM_RECT_AREA_LIGHTS; i ++ ) {
 
 		rectAreaLight = rectAreaLights[ i ];
-		RE_Direct_RectArea( rectAreaLight, geometry, material, reflectedLight );
+		RE_Direct_RectArea( rectAreaLight, splitGeoNormal, geometry, material, reflectedLight );
 
 	}
 	#pragma unroll_loop_end
@@ -127,14 +131,14 @@ IncidentLight directLight;
 
 	vec3 irradiance = getAmbientLightIrradiance( ambientLightColor );
 
-	irradiance += getLightProbeIrradiance( lightProbe, geometry );
+	irradiance += getLightProbeIrradiance( lightProbe, splitGeoNormal );
 
 	#if ( NUM_HEMI_LIGHTS > 0 )
 
 		#pragma unroll_loop_start
 		for ( int i = 0; i < NUM_HEMI_LIGHTS; i ++ ) {
 
-			irradiance += getHemisphereLightIrradiance( hemisphereLights[ i ], geometry );
+			irradiance += getHemisphereLightIrradiance( hemisphereLights[ i ], splitGeoNormal );
 
 		}
 		#pragma unroll_loop_end

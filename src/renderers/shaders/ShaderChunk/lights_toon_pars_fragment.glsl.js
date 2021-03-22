@@ -17,9 +17,17 @@ struct ToonMaterial {
 
 };
 
-void RE_Direct_Toon( const in IncidentLight directLight, const in GeometricContext geometry, const in ToonMaterial material, inout ReflectedLight reflectedLight ) {
+void RE_Direct_Toon(
+	const in IncidentLight directLight,
+	const in vec3 geoNormal,
+	#ifdef CLEARCOAT
+	const in vec3 ccNormal,
+	#endif
+	const in GeometricContext geometry,
+	const in ToonMaterial material,
+	inout ReflectedLight reflectedLight ) {
 
-	vec3 irradiance = getGradientIrradiance( geometry.normal, directLight.direction ) * directLight.color;
+	vec3 irradiance = getGradientIrradiance( geoNormal, directLight.direction ) * directLight.color;
 
 	#ifndef PHYSICALLY_CORRECT_LIGHTS
 
@@ -29,7 +37,7 @@ void RE_Direct_Toon( const in IncidentLight directLight, const in GeometricConte
 
 	reflectedLight.directDiffuse += irradiance * BRDF_Diffuse_Lambert( material.diffuseColor );
 
-	reflectedLight.directSpecular += irradiance * BRDF_Specular_BlinnPhong( directLight, geometry, material.specularColor, material.specularShininess ) * material.specularStrength;
+	reflectedLight.directSpecular += irradiance * BRDF_Specular_BlinnPhong( directLight, geoNormal, geometry.viewDir, material.specularColor, material.specularShininess ) * material.specularStrength;
 
 }
 

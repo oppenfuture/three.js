@@ -17,9 +17,18 @@ struct BlinnPhongMaterial {
 
 };
 
-void RE_Direct_BlinnPhong( const in IncidentLight directLight, const in GeometricContext geometry, const in BlinnPhongMaterial material, inout ReflectedLight reflectedLight ) {
+void RE_Direct_BlinnPhong(
+	const in IncidentLight directLight,
+	const in vec3 geoNormal,
+	#ifdef CLEARCOAT
+	const in vec3 ccNormal,
+	#endif
+	const in GeometricContext geometry,
+	const in BlinnPhongMaterial material,
+	inout ReflectedLight reflectedLight
+) {
 
-	float dotNL = saturate( dot( geometry.normal, directLight.direction ) );
+	float dotNL = saturate( dot( geoNormal, directLight.direction ) );
 	vec3 irradiance = dotNL * directLight.color;
 
 	#ifndef PHYSICALLY_CORRECT_LIGHTS
@@ -30,7 +39,7 @@ void RE_Direct_BlinnPhong( const in IncidentLight directLight, const in Geometri
 
 	reflectedLight.directDiffuse += irradiance * BRDF_Diffuse_Lambert( material.diffuseColor );
 
-	reflectedLight.directSpecular += irradiance * BRDF_Specular_BlinnPhong( directLight, geometry, material.specularColor, material.specularShininess ) * material.specularStrength;
+	reflectedLight.directSpecular += irradiance * BRDF_Specular_BlinnPhong( directLight, geoNormal, geometry.viewDir, material.specularColor, material.specularShininess ) * material.specularStrength;
 
 }
 

@@ -18,7 +18,7 @@ export default /* glsl */`
 
 	#if defined( USE_ENVMAP ) && defined( STANDARD ) && defined( ENVMAP_TYPE_CUBE_UV )
 
-		iblIrradiance += getLightProbeIndirectIrradiance( /*lightProbe,*/ geometry, maxMipLevel );
+		iblIrradiance += getLightProbeIndirectIrradiance( /*lightProbe,*/ splitGeoNormal, maxMipLevel );
 
 	#endif
 
@@ -26,11 +26,11 @@ export default /* glsl */`
 
 #if defined( USE_ENVMAP ) && defined( RE_IndirectSpecular )
 
-	radiance += getLightProbeIndirectRadiance( /*specularLightProbe,*/ geometry.viewDir, geometry.normal, material.specularRoughness, maxMipLevel );
+	radiance += getLightProbeIndirectRadiance( /*specularLightProbe,*/ geometry.viewDir, splitGeoNormal, material.specularRoughness, maxMipLevel );
 
 	#ifdef CLEARCOAT
 
-		clearcoatRadiance += getLightProbeIndirectRadiance( /*specularLightProbe,*/ geometry.viewDir, geometry.clearcoatNormal, material.clearcoatRoughness, maxMipLevel );
+		clearcoatRadiance += getLightProbeIndirectRadiance( /*specularLightProbe,*/ geometry.viewDir, splitGeoClearcoatNormal, material.clearcoatRoughness, maxMipLevel );
 
 	#endif
 

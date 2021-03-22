@@ -277,9 +277,9 @@ vec3 BRDF_Specular_GGX_Environment( const in vec3 viewDir, const in vec3 normal,
 // Fdez-Agüera's "Multiple-Scattering Microfacet Model for Real-Time Image Based Lighting"
 // Approximates multiscattering in order to preserve energy.
 // http://www.jcgt.org/published/0008/01/03/
-void BRDF_Specular_Multiscattering_Environment( const in GeometricContext geometry, const in vec3 specularColor, const in float roughness, inout vec3 singleScatter, inout vec3 multiScatter ) {
+void BRDF_Specular_Multiscattering_Environment( const in vec3 normal, const in vec3 viewDir, const in vec3 specularColor, const in float roughness, inout vec3 singleScatter, inout vec3 multiScatter ) {
 
-	float dotNV = saturate( dot( geometry.normal, geometry.viewDir ) );
+	float dotNV = saturate( dot( normal, viewDir ) );
 
 	vec3 F = F_Schlick_RoughnessDependent( specularColor, dotNV, roughness );
 	vec2 brdf = integrateSpecularBRDF( dotNV, roughness );
@@ -309,13 +309,13 @@ float D_BlinnPhong( const in float shininess, const in float dotNH ) {
 
 }
 
-vec3 BRDF_Specular_BlinnPhong( const in IncidentLight incidentLight, const in GeometricContext geometry, const in vec3 specularColor, const in float shininess ) {
+vec3 BRDF_Specular_BlinnPhong( const in IncidentLight incidentLight, const in vec3 normal, const in vec3 viewDir, const in vec3 specularColor, const in float shininess ) {
 
-	vec3 halfDir = normalize( incidentLight.direction + geometry.viewDir );
+	vec3 halfDir = normalize( incidentLight.direction + viewDir );
 
-	//float dotNL = saturate( dot( geometry.normal, incidentLight.direction ) );
-	//float dotNV = saturate( dot( geometry.normal, geometry.viewDir ) );
-	float dotNH = saturate( dot( geometry.normal, halfDir ) );
+	//float dotNL = saturate( dot( normal, incidentLight.direction ) );
+	//float dotNV = saturate( dot( normal, viewDir ) );
+	float dotNH = saturate( dot( normal, halfDir ) );
 	float dotLH = saturate( dot( incidentLight.direction, halfDir ) );
 
 	vec3 F = F_Schlick( specularColor, dotLH );
@@ -354,10 +354,10 @@ float V_Neubelt(float NoV, float NoL) {
 	return saturate(1.0 / (4.0 * (NoL + NoV - NoL * NoV)));
 }
 
-vec3 BRDF_Specular_Sheen( const in float roughness, const in vec3 L, const in GeometricContext geometry, vec3 specularColor ) {
+vec3 BRDF_Specular_Sheen( const in float roughness, const in vec3 L, const in vec3 normal, const in vec3 viewDir, vec3 specularColor ) {
 
-	vec3 N = geometry.normal;
-	vec3 V = geometry.viewDir;
+	vec3 N = normal;
+	vec3 V = viewDir;
 
 	vec3 H = normalize( V + L );
 	float dotNH = saturate( dot( N, H ) );

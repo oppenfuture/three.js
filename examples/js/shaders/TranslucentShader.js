@@ -118,7 +118,7 @@ THREE.TranslucentShader = {
 		// Doing lights fragment begin.
 		"	GeometricContext geometry;",
 		"	geometry.position = - vViewPosition;",
-		"	geometry.normal = normal;",
+		"	vec3 splitGeoNormal = normal;",
 		"	geometry.viewDir = normalize( vViewPosition );",
 
 		"	IncidentLight directLight;",
@@ -136,7 +136,13 @@ THREE.TranslucentShader = {
 		"			directLight.color *= all( bvec2( pointLight.shadow, directLight.visible ) ) ? getPointShadow( pointShadowMap[ i ], pointLight.shadowMapSize, pointLight.shadowBias, pointLight.shadowRadius, vPointShadowCoord[ i ], pointLight.shadowCameraNear, pointLight.shadowCameraFar ) : 1.0;",
 		"			#endif",
 
-		"			RE_Direct( directLight, splitGeoNormal, splitGeoClearcoatNormal, geometry, material, reflectedLight );",
+		"			RE_Direct(",
+		"				directLight, splitGeoNormal,",
+		"				#ifdef CLEARCOAT",
+		"				splitGeoClearcoatNormal,",
+		"				#endif",
+		"				geometry, material, reflectedLight",
+		"			);",
 
 		"			#if defined( TRANSLUCENT ) && defined( USE_UV )",
 		"			RE_Direct_Scattering(directLight, vUv, geometry, reflectedLight);",
@@ -159,7 +165,13 @@ THREE.TranslucentShader = {
 		"			directLight.color *= all( bvec2( directionalLight.shadow, directLight.visible ) ) ? getShadow( directionalShadowMap[ i ], directionalLight.shadowMapSize, directionalLight.shadowBias, directionalLight.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;",
 		"			#endif",
 
-		"			RE_Direct( directLight, splitGeoNormal, splitGeoClearcoatNormal, geometry, material, reflectedLight );",
+		"			RE_Direct(",
+		"				directLight, splitGeoNormal,",
+		"				#ifdef CLEARCOAT",
+		"				splitGeoClearcoatNormal,",
+		"				#endif",
+		"				geometry, material, reflectedLight",
+		"			);",
 
 		"			#if defined( TRANSLUCENT ) && defined( USE_UV )",
 		"			RE_Direct_Scattering(directLight, vUv, geometry, reflectedLight);",

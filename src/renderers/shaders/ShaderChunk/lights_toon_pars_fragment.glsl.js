@@ -17,7 +17,15 @@ struct ToonMaterial {
 
 };
 
-void RE_Direct_Toon( const in IncidentLight directLight, const in vec3 geoNormal, const in vec3 ccNormal, const in GeometricContext geometry, const in ToonMaterial material, inout ReflectedLight reflectedLight ) {
+void RE_Direct_Toon(
+	const in IncidentLight directLight,
+	const in vec3 geoNormal,
+	#ifdef CLEARCOAT
+	const in vec3 ccNormal,
+	#endif
+	const in GeometricContext geometry,
+	const in ToonMaterial material,
+	inout ReflectedLight reflectedLight ) {
 
 	vec3 irradiance = getGradientIrradiance( geoNormal, directLight.direction ) * directLight.color;
 

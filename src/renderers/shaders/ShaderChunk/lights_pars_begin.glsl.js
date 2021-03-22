@@ -30,7 +30,7 @@ vec3 shGetIrradianceAt( in vec3 normal, in vec3 shCoefficients[ 9 ] ) {
 
 }
 
-vec3 getLightProbeIrradiance( const in vec3 lightProbe[ 9 ],const in vec3 geoNormal ) {
+vec3 getLightProbeIrradiance( const in vec3 lightProbe[ 9 ], const in vec3 geoNormal ) {
 
 	vec3 worldNormal = inverseTransformDirection( geoNormal, viewMatrix );
 

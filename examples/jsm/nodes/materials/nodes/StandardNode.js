@@ -135,7 +135,7 @@ StandardNode.prototype.build = function ( builder ) {
 			roughness: specularRoughness,
 			bias: new SpecularMIPLevelNode( specularRoughness ),
 			viewNormal: new ExpressionNode( 'normal', 'v3' ),
-			worldNormal: new ExpressionNode( 'inverseTransformDirection( geometry.normal, viewMatrix )', 'v3' ),
+			worldNormal: new ExpressionNode( 'inverseTransformDirection( splitGeoNormal, viewMatrix )', 'v3' ),
 			gamma: true
 		};
 

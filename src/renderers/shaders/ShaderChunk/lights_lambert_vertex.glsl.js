@@ -3,12 +3,12 @@ vec3 diffuse = vec3( 1.0 );
 
 GeometricContext geometry;
 geometry.position = mvPosition.xyz;
-geometry.normal = normalize( transformedNormal );
+vec3 splitGeoNormal = normalize( transformedNormal );
 geometry.viewDir = ( isOrthographic ) ? vec3( 0, 0, 1 ) : normalize( -mvPosition.xyz );
 
 GeometricContext backGeometry;
 backGeometry.position = geometry.position;
-backGeometry.normal = -geometry.normal;
+vec3 splitBackGeoNormal = -splitGeoNormal;
 backGeometry.viewDir = geometry.viewDir;
 
 vLightFront = vec3( 0.0 );
@@ -30,7 +30,7 @@ vec3 directLightColor_Diffuse;
 
 		getPointDirectLightIrradiance( pointLights[ i ], geometry, directLight );
 
-		dotNL = dot( geometry.normal, directLight.direction );
+		dotNL = dot( splitGeoNormal, directLight.direction );
 		directLightColor_Diffuse = PI * directLight.color;
 
 		vLightFront += saturate( dotNL ) * directLightColor_Diffuse;
@@ -53,7 +53,7 @@ vec3 directLightColor_Diffuse;
 
 		getSpotDirectLightIrradiance( spotLights[ i ], geometry, directLight );
 
-		dotNL = dot( geometry.normal, directLight.direction );
+		dotNL = dot( splitGeoNormal, directLight.direction );
 		directLightColor_Diffuse = PI * directLight.color;
 
 		vLightFront += saturate( dotNL ) * directLightColor_Diffuse;
@@ -87,7 +87,7 @@ vec3 directLightColor_Diffuse;
 
 		getDirectionalDirectLightIrradiance( directionalLights[ i ], geometry, directLight );
 
-		dotNL = dot( geometry.normal, directLight.direction );
+		dotNL = dot( splitGeoNormal, directLight.direction );
 		directLightColor_Diffuse = PI * directLight.color;
 
 		vLightFront += saturate( dotNL ) * directLightColor_Diffuse;
@@ -108,11 +108,11 @@ vec3 directLightColor_Diffuse;
 	#pragma unroll_loop_start
 	for ( int i = 0; i < NUM_HEMI_LIGHTS; i ++ ) {
 
-		vIndirectFront += getHemisphereLightIrradiance( hemisphereLights[ i ], geometry.normal );
+		vIndirectFront += getHemisphereLightIrradiance( hemisphereLights[ i ], splitGeoNormal );
 
 		#ifdef DOUBLE_SIDED
 
-			vIndirectBack += getHemisphereLightIrradiance( hemisphereLights[ i ], backGeometry.normal );
+			vIndirectBack += getHemisphereLightIrradiance( hemisphereLights[ i ], splitBackGeoNormal );
 
 		#endif
 

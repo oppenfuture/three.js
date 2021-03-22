@@ -17,7 +17,16 @@ struct BlinnPhongMaterial {
 
 };
 
-void RE_Direct_BlinnPhong( const in IncidentLight directLight, const in vec3 geoNormal, const in vec3 ccNormal, const in GeometricContext geometry, const in BlinnPhongMaterial material, inout ReflectedLight reflectedLight ) {
+void RE_Direct_BlinnPhong(
+	const in IncidentLight directLight,
+	const in vec3 geoNormal,
+	#ifdef CLEARCOAT
+	const in vec3 ccNormal,
+	#endif
+	const in GeometricContext geometry,
+	const in BlinnPhongMaterial material,
+	inout ReflectedLight reflectedLight
+) {
 
 	float dotNL = saturate( dot( geoNormal, directLight.direction ) );
 	vec3 irradiance = dotNL * directLight.color;

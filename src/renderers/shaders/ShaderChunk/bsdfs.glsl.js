@@ -142,7 +142,6 @@ vec3 BRDF_Specular_GGX( const in IncidentLight incidentLight, const in vec3 view
 
 	float D = D_GGX( alpha, dotNH );
 
-	// return vec3(D);
 	return F * ( G * D );
 
 } // validated

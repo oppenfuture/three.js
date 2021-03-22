@@ -67,7 +67,16 @@ float clearcoatDHRApprox( const in float roughness, const in float dotNL ) {
 
 #endif
 
-void RE_Direct_Physical( const in IncidentLight directLight, const in vec3 geoNormal, const in vec3 ccNormal, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {
+void RE_Direct_Physical(
+	const in IncidentLight directLight,
+	const in vec3 geoNormal,
+	#ifdef CLEARCOAT
+	const in vec3 ccNormal,
+	#endif
+	const in GeometricContext geometry,
+	const in PhysicalMaterial material,
+	inout ReflectedLight reflectedLight
+) {
 
 	float dotNL = saturate( dot( geoNormal, directLight.direction ) );
 
@@ -122,7 +131,18 @@ void RE_IndirectDiffuse_Physical( const in vec3 irradiance, const in GeometricCo
 
 }
 
-void RE_IndirectSpecular_Physical( const in vec3 radiance, const in vec3 irradiance, const in vec3 clearcoatRadiance, const in vec3 geoNormal, const in vec3 ccNormal, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight) {
+void RE_IndirectSpecular_Physical(
+	const in vec3 radiance,
+	const in vec3 irradiance,
+	const in vec3 clearcoatRadiance,
+	const in vec3 geoNormal,
+	#ifdef CLEARCOAT
+	const in vec3 ccNormal,
+	#endif
+	const in GeometricContext geometry,
+	const in PhysicalMaterial material,
+	inout ReflectedLight reflectedLight
+) {
 
 	#ifdef CLEARCOAT
 

@@ -37,7 +37,7 @@ export default /* glsl */`
 
 	#else
 
-		normal = perturbNormal2Arb( -vViewPosition, normal, mapN );
+		normal = perturbNormal2Arb( -vViewPosition, normal, mapN, gl_FrontFacing );
 
 	#endif
 

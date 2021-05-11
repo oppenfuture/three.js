@@ -1,6 +1,6 @@
 {
   "name": "@oppentech/three",
-  "version": "0.115.0",
+  "version": "0.115.3",
   "description": "JavaScript 3D library",
   "main": "build/three.js",
   "module": "build/three.module.js",
@@ -9,7 +9,7 @@
     "type": "git",
     "url": "https://github.com/mrdoob/three.js"
   },
-  "sideEffects":[
+  "sideEffects": [
     "src/Three.js"
   ],
   "files": [
@@ -107,5 +107,8 @@
       "build/three.module.js"
     ],
     "directories": {}
+  },
+  "dependencies": {
+    "ali-oss": "^6.15.2"
   }
 }

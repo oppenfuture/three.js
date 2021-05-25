@@ -552,6 +552,7 @@ var GLTFLoader = ( function () {
 				if (vIntensity <= 0.0) discard;
 				gl_FragColor = vColor;
 				vec2 rotateUv = rotateUV(gl_PointCoord, vRandom * vIntensity * PI * 0.6);
+				rotateUv = clamp(rotateUv, 0.0, 1.0);
 				gl_FragColor = gl_FragColor * texture2D( pointTexture, rotateUv );
 			}
 			`,

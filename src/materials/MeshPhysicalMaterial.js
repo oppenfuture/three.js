@@ -33,6 +33,8 @@ import * as MathUtils from '../math/MathUtils.js';
  *  specularIntensityMap: new THREE.Texture( <Image> ),
  *  specularColor: <Color>,
  *  specularColorMap: new THREE.Texture( <Image> )
+ *
+ *  refraction: <float>,
  * }
  */
 
@@ -92,6 +94,7 @@ class MeshPhysicalMaterial extends MeshStandardMaterial {
 		this._sheen = 0.0;
 		this._clearcoat = 0;
 		this._transmission = 0;
+		this._refraction = 0.0;
 
 		this.setValues( parameters );
 
@@ -151,6 +154,24 @@ class MeshPhysicalMaterial extends MeshStandardMaterial {
 
 	}
 
+	get refraction() {
+
+		return this._refraction;
+
+	}
+
+	set refraction( value ) {
+
+		if ( this._refraction > 0 !== value > 0 ) {
+
+			this.version ++;
+
+		}
+
+		this._refraction = value;
+
+	}
+
 	copy( source ) {
 
 		super.copy( source );
@@ -184,6 +205,8 @@ class MeshPhysicalMaterial extends MeshStandardMaterial {
 		this.thicknessMap = source.thicknessMap;
 		this.attenuationDistance = source.attenuationDistance;
 		this.attenuationColor.copy( source.attenuationColor );
+
+		this.refraction = source.refraction;
 
 		this.specularIntensity = source.specularIntensity;
 		this.specularIntensityMap = source.specularIntensityMap;

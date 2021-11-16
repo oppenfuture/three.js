@@ -676,6 +676,12 @@ function WebGLMaterials( properties ) {
 
 		}
 
+		if ( material.refraction > 0 ) {
+
+			uniforms.refraction.value = material.refraction;
+
+		}
+
 		uniforms.specularIntensity.value = material.specularIntensity;
 		uniforms.specularColor.value.copy( material.specularColor );
 

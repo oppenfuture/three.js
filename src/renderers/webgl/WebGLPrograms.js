@@ -224,6 +224,8 @@ function WebGLPrograms( renderer, cubemaps, cubeuvmaps, extensions, capabilities
 			transmissionMap: !! material.transmissionMap,
 			thicknessMap: !! material.thicknessMap,
 
+			refraction: material.refraction > 0,
+
 			combine: material.combine,
 
 			vertexTangents: ( !! material.normalMap && !! object.geometry && !! object.geometry.attributes.tangent ),
@@ -489,6 +491,8 @@ function WebGLPrograms( renderer, cubemaps, cubeuvmaps, extensions, capabilities
 			_programLayers.enable( 21 );
 		if ( parameters.lowerNormalMap )
 			_programLayers.enable( 22 );
+		if ( parameters.refraction )
+			_programLayers.enable( 23 );
 
 		array.push( _programLayers.mask );
 

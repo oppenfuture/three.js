@@ -46,7 +46,6 @@ function MeshPhysicalMaterial( parameters ) {
 	this.sheen = null; // null will disable sheen bsdf
 
 	this.transparency = 0.0;
-	this.refraction = 0.0;
 
 	this.setValues( parameters );
 
@@ -73,7 +72,6 @@ MeshPhysicalMaterial.prototype.copy = function ( source ) {
 	this.clearcoatRoughness = source.clearcoatRoughness;
 	this.clearcoatRoughnessMap = source.clearcoatRoughnessMap;
 	this.clearcoatNormalMap = source.clearcoatNormalMap;
-	this.refraction = source.refraction;
 	this.clearcoatNormalScale.copy( source.clearcoatNormalScale );
 
 	this.reflectivity = source.reflectivity;

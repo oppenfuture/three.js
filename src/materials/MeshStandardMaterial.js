@@ -102,6 +102,7 @@ function MeshStandardMaterial( parameters ) {
 	this.envMapIntensity = 1.0;
 
 	this.refractionRatio = 0.98;
+	this.refraction = 0.0;
 
 	this.wireframe = false;
 	this.wireframeLinewidth = 1;
@@ -169,6 +170,7 @@ MeshStandardMaterial.prototype.copy = function ( source ) {
 	this.envMapIntensity = source.envMapIntensity;
 
 	this.refractionRatio = source.refractionRatio;
+	this.refraction = source.refraction;
 
 	this.wireframe = source.wireframe;
 	this.wireframeLinewidth = source.wireframeLinewidth;

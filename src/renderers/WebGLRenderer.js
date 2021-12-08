@@ -2024,7 +2024,7 @@ function WebGLRenderer( parameters ) {
 
 			uniforms.reflectivity.value = material.reflectivity;
 			uniforms.refractionRatio.value = material.refractionRatio;
-			uniforms.refraction.value = material.refraction;
+			uniforms.refraction.value = material.refraction || 0;
 
 			uniforms.maxMipLevel.value = properties.get( envMap ).__maxMipLevel || 0;
 

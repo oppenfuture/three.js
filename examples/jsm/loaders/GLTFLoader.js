@@ -1850,9 +1850,9 @@ class GLTFMaterialsPointSpriteExtension {
 
 	extendParams( materialParams, materialDef, parser ) {
 
-		var pending = [];
+		const pending = [];
 
-		var pointSprite = materialDef.extensions?.OFT_materials_pointSprite;
+		const pointSprite = materialDef.extensions?.OFT_materials_pointSprite;
 
 		if ( pointSprite ) {
 
@@ -1872,7 +1872,7 @@ class GLTFMaterialsPointSpriteExtension {
 
 	createMaterial( materialParams ) {
 
-		var uniformsPoint = {
+		const uniformsPoint = {
 
 			pointSize: { value: materialParams.pointSize * window.devicePixelRatio },
 			pointTexture: { value: materialParams.pointTexture },
@@ -1881,7 +1881,7 @@ class GLTFMaterialsPointSpriteExtension {
 
 		};
 
-		var material = new OFTPointSprintMaterial( {
+		const material = new OFTPointSprintMaterial( {
 
 			uniforms: uniformsPoint,
 			vertexShader: /* glsl */`
@@ -3336,7 +3336,7 @@ class GLTFParser {
 
 		} else if ( materialExtensions[ EXTENSIONS.OFT_MATERIALS_POINT_SPRITE ] ) {
 
-			var kmuExtension = extensions[ EXTENSIONS.OFT_MATERIALS_POINT_SPRITE ];
+			const kmuExtension = extensions[ EXTENSIONS.OFT_MATERIALS_POINT_SPRITE ];
 			materialType = kmuExtension.getMaterialType();
 			pending.push( kmuExtension.extendParams( materialParams, materialDef, parser ) );
 
@@ -3435,10 +3435,10 @@ class GLTFParser {
 				if ( extensions[ EXTENSIONS.OFT_TEXTURE_HIGHPRECISION_NORMAL ]
 					&& materialDef.normalTexture.extensions[ EXTENSIONS.OFT_TEXTURE_HIGHPRECISION_NORMAL ] ) {
 
-					var highPrecisionNormalExt = materialDef.normalTexture.extensions[ EXTENSIONS.OFT_TEXTURE_HIGHPRECISION_NORMAL ];
-					var lowerTexture = highPrecisionNormalExt.lower8BitTexture;
-					var texCoord = materialDef.normalTexture.texCoord || 0;
-					var lowerTexCoord = lowerTexture.texCoord || 0;
+					const highPrecisionNormalExt = materialDef.normalTexture.extensions[ EXTENSIONS.OFT_TEXTURE_HIGHPRECISION_NORMAL ];
+					const lowerTexture = highPrecisionNormalExt.lower8BitTexture;
+					const texCoord = materialDef.normalTexture.texCoord || 0;
+					const lowerTexCoord = lowerTexture.texCoord || 0;
 					// The texCoord property of lower8BitTexture must be the same as the texCoord of normalTexture
 					if ( texCoord !== lowerTexCoord ) {
 
@@ -3488,7 +3488,7 @@ class GLTFParser {
 
 				material = extensions[ EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS ].createMaterial( materialParams );
 
-			}else if ( materialType === OFTPointSpriteMaterial ) {
+			} else if ( materialType === OFTPointSpriteMaterial ) {
 
 				material = extensions[ EXTENSIONS.OFT_MATERIALS_POINT_SPRITE ].createMaterial( materialParams );
 

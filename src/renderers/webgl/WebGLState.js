@@ -318,6 +318,8 @@ function WebGLState( gl, extensions, capabilities ) {
 	var depthBuffer = new DepthBuffer();
 	var stencilBuffer = new StencilBuffer();
 
+	var currentBoundFramebuffers = {};
+
 	var maxVertexAttributes = gl.getParameter( gl.MAX_VERTEX_ATTRIBS );
 	var newAttributes = new Uint8Array( maxVertexAttributes );
 	var enabledAttributes = new Uint8Array( maxVertexAttributes );
@@ -481,6 +483,40 @@ function WebGLState( gl, extensions, capabilities ) {
 			enabledCapabilities[ id ] = false;
 
 		}
+
+	}
+
+	function bindFramebuffer( target, framebuffer ) {
+
+		if ( currentBoundFramebuffers[ target ] !== framebuffer ) {
+
+			gl.bindFramebuffer( target, framebuffer );
+
+			currentBoundFramebuffers[ target ] = framebuffer;
+
+			if ( isWebGL2 ) {
+
+				// gl.DRAW_FRAMEBUFFER is equivalent to gl.FRAMEBUFFER
+
+				if ( target === gl.DRAW_FRAMEBUFFER ) {
+
+					currentBoundFramebuffers[ gl.FRAMEBUFFER ] = framebuffer;
+
+				}
+
+				if ( target === gl.FRAMEBUFFER ) {
+
+					currentBoundFramebuffers[ gl.DRAW_FRAMEBUFFER ] = framebuffer;
+
+				}
+
+			}
+
+			return true;
+
+		}
+
+		return false;
 
 	}
 
@@ -955,6 +991,8 @@ function WebGLState( gl, extensions, capabilities ) {
 		currentTextureSlot = null;
 		currentBoundTextures = {};
 
+		currentBoundFramebuffers = {};
+
 		currentProgram = null;
 
 		currentBlending = null;
@@ -982,6 +1020,8 @@ function WebGLState( gl, extensions, capabilities ) {
 		disableUnusedAttributes: disableUnusedAttributes,
 		enable: enable,
 		disable: disable,
+
+		bindFramebuffer: bindFramebuffer,
 
 		useProgram: useProgram,
 

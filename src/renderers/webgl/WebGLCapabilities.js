@@ -114,7 +114,6 @@ function WebGLCapabilities( gl, extensions, parameters ) {
 		floatVertexTextures: floatVertexTextures,
 
 		maxSamples: maxSamples
-
 	};
 
 }

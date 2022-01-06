@@ -246,6 +246,18 @@ var GLTFLoader = ( function () {
 							extensions[ extensionName ] = new GLTFMaterialsClearcoatExtension();
 							break;
 
+						case EXTENSIONS.KHR_MATERIALS_TRANSMISSION:
+							extensions[ extensionName ] = new GLTFMaterialsTransmissionExtension();
+							break;
+
+						case EXTENSIONS.KHR_MATERIALS_VOLUME:
+							extensions[ extensionName ] = new GLTFMaterialsVolumeExtension();
+							break;
+
+						case EXTENSIONS.KHR_MATERIALS_IOR:
+							extensions[ extensionName ] = new GLTFMaterialsIorExtension();
+							break;
+
 						case EXTENSIONS.KHR_MATERIALS_UNLIT:
 							extensions[ extensionName ] = new GLTFMaterialsUnlitExtension();
 							break;
@@ -345,6 +357,9 @@ var GLTFLoader = ( function () {
 		KHR_DRACO_MESH_COMPRESSION: 'KHR_draco_mesh_compression',
 		KHR_LIGHTS_PUNCTUAL: 'KHR_lights_punctual',
 		KHR_MATERIALS_CLEARCOAT: 'KHR_materials_clearcoat',
+		KHR_MATERIALS_TRANSMISSION: 'KHR_materials_transmission',
+		KHR_MATERIALS_VOLUME: 'KHR_materials_volume',
+		KHR_MATERIALS_IOR: 'KHR_materials_ior',
 		KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS: 'KHR_materials_pbrSpecularGlossiness',
 		KHR_MATERIALS_UNLIT: 'KHR_materials_unlit',
 		KHR_TEXTURE_TRANSFORM: 'KHR_texture_transform',
@@ -747,6 +762,114 @@ var GLTFLoader = ( function () {
 		return Promise.all( pending );
 
 	};
+
+	/**
+ * Transmission Materials Extension
+ *
+ * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_transmission
+ * Draft: https://github.com/KhronosGroup/glTF/pull/1698
+ */
+	 function GLTFMaterialsTransmissionExtension() {
+
+		this.name = EXTENSIONS.KHR_MATERIALS_TRANSMISSION;
+
+	}
+
+	GLTFMaterialsTransmissionExtension.prototype.getMaterialType = function () {
+
+		return MeshPhysicalMaterial;
+
+	};
+
+	GLTFMaterialsTransmissionExtension.prototype.extendParams = function ( materialParams, materialDef, parser ) {
+
+		var pending = [];
+
+		var extension = materialDef.extensions[ this.name ];
+
+		if ( extension.transmissionFactor !== undefined ) {
+
+			materialParams.transmission = extension.transmissionFactor;
+
+		}
+
+		if ( extension.transmissionTexture !== undefined ) {
+
+			pending.push( parser.assignTexture( materialParams, 'transmissionMap', extension.transmissionTexture ) );
+
+		}
+
+		return Promise.all( pending );
+
+	};
+
+	/**
+ * Materials Volume Extension
+ *
+ * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_volume
+ */
+	 function GLTFMaterialsVolumeExtension() {
+
+		this.name = EXTENSIONS.KHR_MATERIALS_VOLUME;
+
+	}
+
+	GLTFMaterialsVolumeExtension.prototype.getMaterialType = function () {
+
+		return MeshPhysicalMaterial;
+
+	};
+
+	GLTFMaterialsVolumeExtension.prototype.extendParams = function ( materialParams, materialDef, parser ) {
+
+		var pending = [];
+
+		var extension = materialDef.extensions[ this.name ];
+
+		materialParams.thickness = extension.thicknessFactor !== undefined ? extension.thicknessFactor : 0;
+
+		if ( extension.thicknessTexture !== undefined ) {
+
+			pending.push( parser.assignTexture( materialParams, 'thicknessMap', extension.thicknessTexture ) );
+
+		}
+
+		materialParams.attenuationDistance = extension.attenuationDistance || 0;
+
+		const colorArray = extension.attenuationColor || [ 1, 1, 1 ];
+		materialParams.attenuationColor = new Color( colorArray[ 0 ], colorArray[ 1 ], colorArray[ 2 ] );
+
+		return Promise.all( pending );
+
+	};
+
+	/**
+ * Materials ior Extension
+ *
+ * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_ior
+ */
+	 function GLTFMaterialsIorExtension() {
+
+		this.name = EXTENSIONS.KHR_MATERIALS_IOR;
+
+	}
+
+	GLTFMaterialsIorExtension.prototype.getMaterialType = function () {
+
+		return MeshPhysicalMaterial;
+
+	};
+
+	GLTFMaterialsIorExtension.prototype.extendParams = function ( materialParams, materialDef ) {
+
+		var extension = materialDef.extensions[ this.name ];
+
+		materialParams.ior = extension.ior !== undefined ? extension.ior : 1.5;
+
+		return Promise.resolve();
+
+	};
+
 
 	/* BINARY EXTENSION */
 	var BINARY_EXTENSION_HEADER_MAGIC = 'glTF';
@@ -2543,6 +2666,30 @@ var GLTFLoader = ( function () {
 
 		}
 
+		if ( materialExtensions[ EXTENSIONS.KHR_MATERIALS_TRANSMISSION ] ) {
+
+			var transmissionExtension = extensions[ EXTENSIONS.KHR_MATERIALS_TRANSMISSION ];
+			materialType = transmissionExtension.getMaterialType();
+			pending.push( transmissionExtension.extendParams( materialParams, { extensions: materialExtensions }, parser ) );
+
+		}
+
+		if ( materialExtensions[ EXTENSIONS.KHR_MATERIALS_VOLUME ] ) {
+
+			var volumeExtension = extensions[ EXTENSIONS.KHR_MATERIALS_VOLUME ];
+			materialType = volumeExtension.getMaterialType();
+			pending.push( volumeExtension.extendParams( materialParams, { extensions: materialExtensions }, parser ) );
+
+		}
+
+		if ( materialExtensions[ EXTENSIONS.KHR_MATERIALS_IOR ] ) {
+
+			var iorExtension = extensions[ EXTENSIONS.KHR_MATERIALS_IOR ];
+			materialType = iorExtension.getMaterialType();
+			pending.push( iorExtension.extendParams( materialParams, { extensions: materialExtensions }, parser ) );
+
+		}
+
 		return Promise.all( pending ).then( function () {
 
 			var material;
@@ -2551,7 +2698,7 @@ var GLTFLoader = ( function () {
 
 				material = extensions[ EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS ].createMaterial( materialParams );
 
-			}else if ( materialType === OFTPointSprintMaterial ) {
+			} else if ( materialType === OFTPointSprintMaterial ) {
 
 				material = extensions[ EXTENSIONS.OFT_MATERIALS_POINT_SPRITE ].createMaterial( materialParams );
 

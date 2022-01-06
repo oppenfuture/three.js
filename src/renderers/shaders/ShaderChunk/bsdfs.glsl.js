@@ -17,6 +17,15 @@ vec2 integrateSpecularBRDF( const in float dotNV, const in float roughness ) {
 
 }
 
+vec3 EnvironmentBRDF( const in vec3 normal, const in vec3 viewDir, const in vec3 specularColor, const in float specularF90, const in float roughness ) {
+	float dotNV = saturate( dot( normal, viewDir ) );
+
+	vec2 fab = integrateSpecularBRDF( dotNV, roughness );
+
+	return specularColor * fab.x + specularF90 * fab.y;
+
+}
+
 float punctualLightIntensityToIrradianceFactor( const in float lightDistance, const in float cutoffDistance, const in float decayExponent ) {
 
 #if defined ( PHYSICALLY_CORRECT_LIGHTS )

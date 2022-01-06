@@ -33,6 +33,4 @@ export class MeshPhysicalMaterial extends MeshStandardMaterial {
 
 	sheen: Color | null;
 
-	transparency: number;
-
 }

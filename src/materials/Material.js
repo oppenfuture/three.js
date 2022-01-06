@@ -85,6 +85,8 @@ Material.prototype = Object.assign( Object.create( EventDispatcher.prototype ), 
 
 	onBeforeCompile: function () {},
 
+	onBeforeRender( /* renderer, scene, camera, geometry, object, group */ ) {},
+
 	setValues: function ( values ) {
 
 		if ( values === undefined ) return;
@@ -253,6 +255,13 @@ Material.prototype = Object.assign( Object.create( EventDispatcher.prototype ), 
 			data.gradientMap = this.gradientMap.toJSON( meta ).uuid;
 
 		}
+
+		if ( this.transmission !== undefined ) data.transmission = this.transmission;
+		if ( this.transmissionMap && this.transmissionMap.isTexture ) data.transmissionMap = this.transmissionMap.toJSON( meta ).uuid;
+		if ( this.thickness !== undefined ) data.thickness = this.thickness;
+		if ( this.thicknessMap && this.thicknessMap.isTexture ) data.thicknessMap = this.thicknessMap.toJSON( meta ).uuid;
+		if ( this.attenuationDistance !== undefined ) data.attenuationDistance = this.attenuationDistance;
+		if ( this.attenuationColor !== undefined ) data.attenuationColor = this.attenuationColor.getHex();
 
 		if ( this.size !== undefined ) data.size = this.size;
 		if ( this.sizeAttenuation !== undefined ) data.sizeAttenuation = this.sizeAttenuation;

@@ -969,7 +969,7 @@ function WebGLRenderer( parameters = {} ) {
 
 		//
 
-		background.render( currentRenderList, scene );
+		background.render( currentRenderList, scene, _currentRenderTarget );
 
 		// render scene
 

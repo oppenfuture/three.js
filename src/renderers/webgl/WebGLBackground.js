@@ -1,4 +1,4 @@
-import { BackSide, FrontSide, CubeUVReflectionMapping } from '../../constants.js';
+import { BackSide, FrontSide, CubeUVReflectionMapping, LinearEncoding, RGBEEncoding, sRGBEncoding, RGBAFormat, UnsignedByteType } from '../../constants.js';
 import { BoxGeometry } from '../../geometries/BoxGeometry.js';
 import { PlaneGeometry } from '../../geometries/PlaneGeometry.js';
 import { ShaderMaterial } from '../../materials/ShaderMaterial.js';
@@ -20,7 +20,36 @@ function WebGLBackground( renderer, cubemaps, state, objects, premultipliedAlpha
 	let currentTonemapping = null;
 	let currentBgToneMapped = null;
 
-	function render( renderList, scene ) {
+	function render( renderList, scene, renderTarget ) {
+
+		function getTextureEncodingFromMap( renderer, map ) {
+
+			let encoding;
+
+			if ( map && map.isTexture ) {
+
+				encoding = map.encoding;
+
+			} else if ( map && map.isWebGLRenderTarget ) {
+
+				console.warn( 'THREE.WebGLPrograms.getTextureEncodingFromMap: don\'t use render targets as textures. Use their .texture property instead.' );
+				encoding = map.texture.encoding;
+
+			} else {
+
+				encoding = LinearEncoding;
+
+			}
+
+			if ( renderer.capabilities.isWebGL2 && map && map.isTexture && map.format === RGBAFormat && map.type === UnsignedByteType && map.encoding === sRGBEncoding ) {
+
+				encoding = LinearEncoding; // disable inline decode for sRGB textures in WebGL 2
+
+			}
+
+			return encoding;
+
+		}
 
 		let forceClear = false;
 		let background = scene.isScene === true ? scene.background : null;
@@ -44,14 +73,33 @@ function WebGLBackground( renderer, cubemaps, state, objects, premultipliedAlpha
 
 		}
 
-		if ( background === null ) {
+		const color = clearColor.clone();
+		let alpha = clearAlpha;
+		if ( background && background.isColor ) {
 
-			setClear( clearColor, clearAlpha );
-
-		} else if ( background && background.isColor ) {
-
-			setClear( background, 1 );
+			color.set( background );
+			alpha = 1.0;
 			forceClear = true;
+
+		}
+
+		if ( background === null || background.isColor ) {
+
+			const outputEncoding = ( renderTarget !== null ) ? getTextureEncodingFromMap( renderer, renderTarget.texture ) : renderer.outputEncoding;
+
+			// Assume background color is in sRGB color space.
+			if ( outputEncoding === LinearEncoding ) {
+
+				color.convertSRGBToLinear();
+
+			} else if ( outputEncoding === RGBEEncoding ) {
+
+				color.convertSRGBToLinear();
+				alpha = 128.0 / 255.0; // Exponent will be 0.
+
+			}
+
+			setClear( color, alpha );
 
 		}
 

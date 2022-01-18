@@ -7,7 +7,6 @@ import {
 	NearestFilter,
 	NoBlending,
 	RGBEEncoding,
-	RGBAFormat,
 	RGBEFormat,
 	UnsignedByteType,
 	sRGBEncoding
@@ -345,15 +344,7 @@ class PMREMGenerator {
 
 	_setEncoding( uniform, texture ) {
 
-		if ( this._renderer.capabilities.isWebGL2 === true && texture.format === RGBAFormat && texture.type === UnsignedByteType && texture.encoding === sRGBEncoding ) {
-
-			uniform.value = ENCODINGS[ LinearEncoding ];
-
-		} else {
-
-			uniform.value = ENCODINGS[ texture.encoding ];
-
-		}
+		uniform.value = ENCODINGS[ this._renderer.getTextureEncodingFromMap( texture ) ];
 
 	}
 

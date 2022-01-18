@@ -1844,7 +1844,7 @@ class GLTFMaterialsPointSpriteExtension {
 
 	getMaterialType() {
 
-		return OFTPointSprintMaterial;
+		return OFTPointSpriteMaterial;
 
 	}
 
@@ -1881,7 +1881,7 @@ class GLTFMaterialsPointSpriteExtension {
 
 		};
 
-		const material = new OFTPointSprintMaterial( {
+		const material = new OFTPointSpriteMaterial( {
 
 			uniforms: uniformsPoint,
 			vertexShader: /* glsl */`

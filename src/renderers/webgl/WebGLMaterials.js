@@ -539,6 +539,12 @@ function WebGLMaterials( properties ) {
 		uniforms.roughness.value = material.roughness;
 		uniforms.metalness.value = material.metalness;
 
+		if ( material.refraction > 0 ) {
+
+			uniforms.refraction.value = material.refraction;
+
+		}
+
 		if ( material.roughnessMap ) {
 
 			uniforms.roughnessMap.value = material.roughnessMap;
@@ -673,12 +679,6 @@ function WebGLMaterials( properties ) {
 
 			uniforms.attenuationDistance.value = material.attenuationDistance;
 			uniforms.attenuationColor.value.copy( material.attenuationColor );
-
-		}
-
-		if ( material.refraction > 0 ) {
-
-			uniforms.refraction.value = material.refraction;
 
 		}
 

@@ -90,6 +90,7 @@ const ShaderLib = {
 				emissive: { value: new Color( 0x000000 ) },
 				roughness: { value: 1.0 },
 				metalness: { value: 0.0 },
+				refraction: { value: 0 },
 				envMapIntensity: { value: 1 } // temporary
 			}
 		] ),
@@ -309,7 +310,6 @@ ShaderLib.physical = {
 			thicknessMap: { value: null },
 			attenuationDistance: { value: 0 },
 			attenuationColor: { value: new Color( 0x000000 ) },
-			refraction: { value: 0 },
 			specularIntensity: { value: 0 },
 			specularIntensityMap: { value: null },
 			specularColor: { value: new Color( 1, 1, 1 ) },

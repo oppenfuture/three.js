@@ -222,15 +222,13 @@ void RE_IndirectSpecular_Physical(
 	reflectedLight.indirectSpecular += radiance * singleScattering;
 	reflectedLight.indirectSpecular += multiScattering * cosineWeightedIrradiance;
 
-	vec3 indirectDiffuse = diffuse * cosineWeightedIrradiance;
+	reflectedLight.indirectDiffuse += diffuse * cosineWeightedIrradiance;
 
 	#ifdef USE_REFRACTION
 
-		indirectDiffuse = mix(indirectDiffuse, radianceRefraction * material.diffuseColor, material.refraction);
+		reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, radianceRefraction * material.diffuseColor, material.refraction);
 
 	#endif
-
-	reflectedLight.indirectDiffuse += indirectDiffuse;
 
 }
 

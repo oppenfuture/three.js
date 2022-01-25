@@ -1908,7 +1908,7 @@ class GLTFMaterialsPointSpriteExtension {
 
 			void main() {
 
-				vColor.rgb = color;
+				vColor.rgb = color.rgb;
 
 				vRandom = rand(position.xy);
 				vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
@@ -1985,7 +1985,7 @@ class GLTFMaterialsPointSpriteExtension {
 				vec3 projCoords = vMvpPosition.xyz / vMvpPosition.w;
 				projCoords = projCoords * 0.5 + 0.5;
 				float depth = unpackRGBAToDepth(texture2D(colorTexture, projCoords.xy));
-				if (projCoords.z - depth >= 0.001) discard;
+				if (projCoords.z - depth >= depthBias) discard;
 
 				if (vIntensity <= 0.0) discard;
 				gl_FragColor = vColor;

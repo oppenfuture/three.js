@@ -24,7 +24,7 @@
 			import { RGBELoader } from './jsm/loaders/RGBELoader.js';
 			import { RoughnessMipmapper } from './jsm/utils/RoughnessMipmapper.js';
 
-			let camera, scene, renderer;
+			let camera, scene, renderer, depthRT, depthMat;
 
 			init();
 			render();
@@ -34,8 +34,8 @@
 				const container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
-				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.25, 20 );
-				camera.position.set( - 1.8, 0.6, 2.7 );
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 4 );
+				camera.position.set( - 1.38, 1.119, 2.18 );
 
 				scene = new THREE.Scene();
 
@@ -70,8 +70,11 @@
 									child.isPoints && 
 									child.material.type === 'OFTPointSpriteMaterial' 
 								) {
-									child.material.uniforms.depthBias.value = 1.0;
+
+									child.material.uniforms.depthBias.value = 0.05;
 									child.material.uniforms.pointSize.value = 500;
+									child.material.uniforms.depthTexture.value = depthRT.texture;
+
 								}
 
 							} );
@@ -94,6 +97,8 @@
 				renderer.outputEncoding = THREE.sRGBEncoding;
 				container.appendChild( renderer.domElement );
 
+				initDepthRT();
+
 				const controls = new OrbitControls( camera, renderer.domElement );
 				controls.addEventListener( 'change', render ); // use if there is no animation loop
 				controls.minDistance = 2;
@@ -102,6 +107,31 @@
 				controls.update();
 
 				window.addEventListener( 'resize', onWindowResize );
+
+			}
+
+			function initDepthRT() {
+
+				if ( depthRT ) return;
+
+				var parameters = {
+					minFilter: THREE.LinearFilter,
+					magFilter: THREE.LinearFilter,
+					format: THREE.RGBAFormat,
+					stencilBuffer: false,
+				};
+
+				var size = new THREE.Vector2();
+				renderer.getSize(size);
+				depthRT = new THREE.WebGLRenderTarget(
+					size.x,
+					size.y,
+					parameters,
+				);
+
+				depthMat = new THREE.MeshDepthMaterial({
+					depthPacking: THREE.RGBADepthPacking,
+				});
 
 			}
 
@@ -119,6 +149,13 @@
 			//
 
 			function render() {
+
+				//render depth pass
+				scene.overrideMaterial = depthMat;
+				renderer.setRenderTarget(depthRT);
+				renderer.render(scene, camera);
+				scene.overrideMaterial = null;
+				renderer.setRenderTarget(null);
 
 				renderer.render( scene, camera );
 

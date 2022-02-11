@@ -3414,9 +3414,9 @@ class GLTFParser {
 
 		} else if ( materialExtensions[ EXTENSIONS.OFT_MATERIALS_MATCAP ] ) {
 
-			const kmuExtension = extensions[ EXTENSIONS.OFT_MATERIALS_MATCAP ];
-			materialType = kmuExtension.getMaterialType();
-			pending.push( kmuExtension.extendParams( materialParams, materialDef, parser ) );
+			const matcapExtension = extensions[ EXTENSIONS.OFT_MATERIALS_MATCAP ];
+			materialType = matcapExtension.getMaterialType();
+			pending.push( matcapExtension.extendParams( materialParams, materialDef, parser ) );
 
 		} else {
 
@@ -3584,6 +3584,10 @@ class GLTFParser {
 			if ( material.matcap ) {
 
 				material.matcap.encoding = sRGBEncoding;
+				// threejs的texture load的时候filpY默认是true，应该是对应webgl的uv空间。
+				// 但是gltfloader里面把所有texture的flipY改成了false，我猜可能是gltf-blender-io
+				// 导出的时候把uv.v flip了？这个不太确定。所以这里需要把matcap的flipY再设置回true
+				// 才能保证效果跟threejs editor里的一致
 				material.matcap.flipY = true;
 
 			}

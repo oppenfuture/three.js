@@ -470,10 +470,10 @@ const EXTENSIONS = {
 	KHR_MESH_QUANTIZATION: 'KHR_mesh_quantization',
 	EXT_TEXTURE_WEBP: 'EXT_texture_webp',
 	EXT_MESHOPT_COMPRESSION: 'EXT_meshopt_compression',
-	OFT_MATERIALS_MATCAP: 'OFT_materials_matcap',
-	OFT_MATERIALS_POINT_SPRITE: 'OFT_materials_pointSprite',
 	OFT_TEXTURE_HIGHPRECISION_NORMAL: 'OFT_texture_highPrecisionNormal',
 	OFT_TEXTURE_PRECOMPUTED_MIPMAP: 'OFT_texture_precomputed_mipmap',
+	OFT_MATERIALS_POINT_SPRITE: 'OFT_materials_pointSprite',
+	OFT_MATERIALS_MATCAP: 'OFT_materials_matcap',
 };
 
 /**
@@ -3112,6 +3112,8 @@ class GLTFParser {
 
 		const textureP = this.loadTextureImage( textureIndex, source, loader );
 		const textureExtensions = textureDef.extensions || {};
+
+		// https://github.com/oppenfuture/glTF/blob/precomputedMipmap/extensions/2.0/Vendor/OFT_texture_precomputed_mipmap/README.md
 		if ( textureExtensions[ EXTENSIONS.OFT_TEXTURE_PRECOMPUTED_MIPMAP ] ) {
 
 			const pending = [];

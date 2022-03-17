@@ -471,9 +471,10 @@ const EXTENSIONS = {
 	KHR_MESH_QUANTIZATION: 'KHR_mesh_quantization',
 	EXT_TEXTURE_WEBP: 'EXT_texture_webp',
 	EXT_MESHOPT_COMPRESSION: 'EXT_meshopt_compression',
-	OFT_TEXTURE_HIGHPRECISION_NORMAL: 'OFT_texture_highPrecisionNormal',
-	OFT_MATERIALS_POINT_SPRITE: 'OFT_materials_pointSprite',
 	OFT_MATERIALS_MATCAP: 'OFT_materials_matcap',
+	OFT_MATERIALS_POINT_SPRITE: 'OFT_materials_pointSprite',
+	OFT_TEXTURE_HIGHPRECISION_NORMAL: 'OFT_texture_highPrecisionNormal',
+	OFT_TEXTURE_PRECOMPUTED_MIPMAP: 'OFT_texture_precomputed_mipmap',
 };
 
 /**
@@ -3110,8 +3111,40 @@ class GLTFParser {
 
 		}
 
-		return this.loadTextureImage( textureIndex, source, loader );
+		const textureP = this.loadTextureImage( textureIndex, source, loader );
+		const textureExtensions = textureDef.extensions || {};
+		if ( textureExtensions[ EXTENSIONS.OFT_TEXTURE_PRECOMPUTED_MIPMAP ] ) {
 
+			const pending = [];
+			return textureP.then( ( texture ) => {
+
+				texture.mipmaps[ 0 ] = texture.image;
+				const mipmapInfo = textureExtensions[ EXTENSIONS.OFT_TEXTURE_PRECOMPUTED_MIPMAP ][ 'sources' ];
+				mipmapInfo.forEach( mipmap => {
+
+					if ( mipmap.level != 0 ) {
+
+						pending.push( this.loadTextureImage( textureIndex, json.images[ mipmap.source ], loader ).then( ( mipmap_tex ) => {
+
+							texture.mipmaps[ mipmap.level ] = mipmap_tex.image;
+
+						} ) );
+
+					}
+
+				} );
+
+				return Promise.all( pending ).then( function () {
+
+					return texture;
+
+				} );
+
+			} );
+
+		}
+
+		return textureP;
 	}
 
 	loadTextureImage( textureIndex, source, loader ) {

@@ -32,7 +32,7 @@ import {
 	Matrix4,
 	Mesh,
 	MeshBasicMaterial,
-	MeshMatcapMaterial,
+	OFTMatcapMaterial,
 	MeshPhysicalMaterial,
 	MeshStandardMaterial,
 	MirroredRepeatWrapping,
@@ -2028,7 +2028,7 @@ class GLTFMaterialsMatcapExtension {
 
 	getMaterialType() {
 
-		return MeshMatcapMaterial;
+		return OFTMatcapMaterial;
 
 	}
 
@@ -3534,7 +3534,7 @@ class GLTFParser {
 
 		}
 
-		if ( materialDef.occlusionTexture !== undefined && materialType !== MeshBasicMaterial && materialType !== MeshMatcapMaterial ) {
+		if ( materialDef.occlusionTexture !== undefined && materialType !== MeshBasicMaterial && materialType !== OFTMatcapMaterial ) {
 
 			pending.push( parser.assignTexture( materialParams, 'aoMap', materialDef.occlusionTexture ) );
 
@@ -3546,13 +3546,13 @@ class GLTFParser {
 
 		}
 
-		if ( materialDef.emissiveFactor !== undefined && materialType !== MeshBasicMaterial && materialType !== MeshMatcapMaterial ) {
+		if ( materialDef.emissiveFactor !== undefined && materialType !== MeshBasicMaterial && materialType !== OFTMatcapMaterial ) {
 
 			materialParams.emissive = new Color().fromArray( materialDef.emissiveFactor );
 
 		}
 
-		if ( materialDef.emissiveTexture !== undefined && materialType !== MeshBasicMaterial && materialType !== MeshMatcapMaterial ) {
+		if ( materialDef.emissiveTexture !== undefined && materialType !== MeshBasicMaterial && materialType !== OFTMatcapMaterial ) {
 
 			pending.push( parser.assignTexture( materialParams, 'emissiveMap', materialDef.emissiveTexture ) );
 
@@ -3584,11 +3584,6 @@ class GLTFParser {
 			if ( material.matcap ) {
 
 				material.matcap.encoding = sRGBEncoding;
-				// threejs的texture load的时候filpY默认是true，应该是对应webgl的uv空间。
-				// 但是gltfloader里面把所有texture的flipY改成了false，我猜可能是gltf-blender-io
-				// 导出的时候把uv.v flip了？这个不太确定。所以这里需要把matcap的flipY再设置回true
-				// 才能保证效果跟threejs editor里的一致
-				material.matcap.flipY = true;
 
 			}
 

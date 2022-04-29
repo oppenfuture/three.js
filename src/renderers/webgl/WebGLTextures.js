@@ -185,7 +185,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	function getMipLevels( texture, image, supportsMips ) {
 
-		if ( textureNeedsGenerateMipmaps( texture, supportsMips ) === true || ( texture.isFramebufferTexture && texture.minFilter !== NearestFilter && texture.minFilter !== LinearFilter ) ) {
+		if ( textureNeedsGenerateMipmaps( texture, supportsMips ) === true ) {
 
 			return Math.log2( Math.max( image.width, image.height ) ) + 1;
 
@@ -792,27 +792,6 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 			} else {
 
 				state.texImage3D( _gl.TEXTURE_3D, 0, glInternalFormat, image.width, image.height, image.depth, 0, glFormat, glType, image.data );
-
-			}
-
-		} else if ( texture.isFramebufferTexture ) {
-
-			if ( useTexStorage && allocateMemory ) {
-
-				state.texStorage2D( _gl.TEXTURE_2D, levels, glInternalFormat, image.width, image.height );
-
-			} else if ( allocateMemory ) {
-
-				let width = image.width, height = image.height;
-
-				for ( let i = 0; i < levels; i ++ ) {
-
-					state.texImage2D( _gl.TEXTURE_2D, i, glInternalFormat, width, height, 0, glFormat, glType, null );
-
-					width >>= 1;
-					height >>= 1;
-
-				}
 
 			}
 

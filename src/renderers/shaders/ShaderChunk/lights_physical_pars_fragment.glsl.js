@@ -24,11 +24,11 @@ struct PhysicalMaterial {
 
 };
 
-// temporary
 #ifndef CLEARCOAT_R115_COMPATABILITY
+// temporary
 vec3 clearcoatSpecular = vec3( 0.0 );
-#endif
 vec3 sheenSpecular = vec3( 0.0 );
+#endif
 
 // This is a curve-fit approxmation to the "Charlie sheen" BRDF integrated over the hemisphere from 
 // Estevez and Kulla 2017, "Production Friendly Microfacet Sheen BRDF". The analysis can be found
@@ -206,12 +206,6 @@ void RE_Direct_Physical(
 
 	#endif
 
-	#ifdef USE_SHEEN
-
-		sheenSpecular += irradiance * BRDF_Sheen( directLight.direction, geometry.viewDir, normal, material.sheenColor, material.sheenRoughness );
-
-	#endif
-
 	#ifdef CLEARCOAT_R115_COMPATABILITY
 
 	float clearcoatInv = 1.0 - clearcoatDHR;
@@ -219,6 +213,22 @@ void RE_Direct_Physical(
 	#else
 
 	float clearcoatInv = 1.0;
+
+	#endif
+
+	#ifdef USE_SHEEN
+
+		vec3 snSpecular = irradiance * BRDF_Sheen( directLight.direction, geometry.viewDir, normal, material.sheenColor, material.sheenRoughness );
+
+	#ifdef CLEARCOAT_R115_COMPATABILITY
+
+		reflectedLight.directSpecular += clearcoatInv * snSpecular;
+
+	#else
+
+		sheenSpecular += snSpecular;
+
+	#endif
 
 	#endif
 
@@ -280,7 +290,11 @@ void RE_IndirectSpecular_Physical(
 
 	#ifdef USE_SHEEN
 
+	#ifndef CLEARCOAT_R115_COMPATABILITY
+
 		sheenSpecular += irradiance * material.sheenColor * IBLSheenBRDF( normal, geometry.viewDir, material.sheenRoughness );
+
+	#endif
 
 	#endif
 

@@ -180,6 +180,8 @@ void main() {
 
 	vec3 outgoingLight = totalDiffuse + totalSpecular + totalEmissiveRadiance;
 
+	#ifndef CLEARCOAT_R115_COMPATABILITY
+
 	#ifdef USE_SHEEN
 
 		// Sheen energy compensation approximation calculation can be found at the end of
@@ -189,8 +191,6 @@ void main() {
 		outgoingLight = outgoingLight * sheenEnergyComp + sheenSpecular;
 
 	#endif
-
-	#ifndef CLEARCOAT_R115_COMPATABILITY
 
 	#ifdef USE_CLEARCOAT
 

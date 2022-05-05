@@ -190,6 +190,8 @@ void main() {
 
 	#endif
 
+	#ifndef CLEARCOAT_R115_COMPATABILITY
+
 	#ifdef USE_CLEARCOAT
 
 		float dotNVcc = saturate( dot( splitGeoClearcoatNormal, geometry.viewDir ) );
@@ -197,6 +199,8 @@ void main() {
 		vec3 Fcc = F_Schlick( material.clearcoatF0, material.clearcoatF90, dotNVcc );
 
 		outgoingLight = outgoingLight * ( 1.0 - material.clearcoat * Fcc ) + clearcoatSpecular * material.clearcoat;
+
+	#endif
 
 	#endif
 

@@ -1159,13 +1159,6 @@ function WebGLState( gl, extensions, capabilities ) {
 
 	function clearTextureBindingState() {
 
-		Object.keys( currentBoundTextures ).forEach( slot => {
-
-			activeTexture( slot );
-			unbindTexture();
-
-		} );
-
 		currentTextureSlot = null;
 		currentBoundTextures = {};
 

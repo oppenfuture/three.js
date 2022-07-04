@@ -1157,6 +1157,20 @@ function WebGLState( gl, extensions, capabilities ) {
 
 	}
 
+	function clearTextureBindingState() {
+
+		Object.keys( currentBoundTextures ).forEach( slot => {
+
+			activeTexture( slot );
+			unbindTexture();
+
+		} );
+
+		currentTextureSlot = null;
+		currentBoundTextures = {};
+
+	}
+
 	return {
 
 		buffers: {
@@ -1200,7 +1214,8 @@ function WebGLState( gl, extensions, capabilities ) {
 		scissor: scissor,
 		viewport: viewport,
 
-		reset: reset
+		reset: reset,
+		clearTextureBindingState: clearTextureBindingState
 
 	};
 

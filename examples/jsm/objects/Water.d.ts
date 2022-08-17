@@ -1,4 +1,4 @@
-import { BufferGeometry, ColorRepresentation, Mesh, ShaderMaterial, Side, Texture, Vector3 } from '../../../src/Three';
+import { BufferGeometry, ColorRepresentation, Mesh, Object3D, ShaderMaterial, Side, Texture, Vector3 } from '../../../src/Three';
 
 export interface WaterOptions {
     textureWidth?: number;
@@ -15,6 +15,7 @@ export interface WaterOptions {
     side?: Side;
     fog?: boolean;
     objectSpaceNormal?: Vector3;
+    subTreeOnlyVisibleInMirror?: Object3D;
 }
 
 export class Water extends Mesh {

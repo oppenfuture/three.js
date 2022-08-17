@@ -43,6 +43,7 @@ class Water extends Mesh {
 		const side = options.side !== undefined ? options.side : FrontSide;
 		const fog = options.fog !== undefined ? options.fog : false;
 		const objectSpaceNormal = options.objectSpaceNormal !== undefined ? options.objectSpaceNormal : new Vector3( 0, 0, 1 );
+		const subTreeOnlyVisibleInMirror = options.subTreeOnlyVisibleInMirror !== undefined ? options.subTreeOnlyVisibleInMirror : null;
 
 		//
 
@@ -292,6 +293,9 @@ class Water extends Mesh {
 			const currentShadowAutoUpdate = renderer.shadowMap.autoUpdate;
 
 			scope.visible = false;
+			if (subTreeOnlyVisibleInMirror !== null) {
+				subTreeOnlyVisibleInMirror.traverse(object => object.visible = true);
+			}
 
 			renderer.xr.enabled = false; // Avoid camera modification and recursion
 			renderer.shadowMap.autoUpdate = false; // Avoid re-computing shadows
@@ -304,6 +308,9 @@ class Water extends Mesh {
 			renderer.render( scene, mirrorCamera );
 
 			scope.visible = true;
+			if (subTreeOnlyVisibleInMirror !== null) {
+				subTreeOnlyVisibleInMirror.traverse(object => object.visible = false);
+			}
 
 			renderer.xr.enabled = currentXrEnabled;
 			renderer.shadowMap.autoUpdate = currentShadowAutoUpdate;

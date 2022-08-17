@@ -4,7 +4,8 @@ export interface AnimationContext {
 }
 
 export interface Platform {
-  devicePixelRatio: () => number;
+  devicePixelRatio(): number;
+  fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
   animationContext: AnimationContext;
 }
 

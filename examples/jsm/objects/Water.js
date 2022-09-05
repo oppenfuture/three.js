@@ -3,6 +3,7 @@ import {
 	FrontSide,
 	Matrix4,
 	Mesh,
+	NoToneMapping,
 	PerspectiveCamera,
 	Plane,
 	ShaderMaterial,
@@ -292,6 +293,8 @@ class Water extends Mesh {
 			const currentXrEnabled = renderer.xr.enabled;
 			const currentShadowAutoUpdate = renderer.shadowMap.autoUpdate;
 
+			const currentToneMapping = renderer.toneMapping;
+
 			scope.visible = false;
 			if (subTreeOnlyVisibleInMirror !== null) {
 				subTreeOnlyVisibleInMirror.traverse(object => object.visible = true);
@@ -299,6 +302,7 @@ class Water extends Mesh {
 
 			renderer.xr.enabled = false; // Avoid camera modification and recursion
 			renderer.shadowMap.autoUpdate = false; // Avoid re-computing shadows
+			renderer.toneMapping = NoToneMapping;
 
 			renderer.setRenderTarget( renderTarget );
 
@@ -314,6 +318,7 @@ class Water extends Mesh {
 
 			renderer.xr.enabled = currentXrEnabled;
 			renderer.shadowMap.autoUpdate = currentShadowAutoUpdate;
+			renderer.toneMapping = currentToneMapping;
 
 			renderer.setRenderTarget( currentRenderTarget );
 

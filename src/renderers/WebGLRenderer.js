@@ -70,7 +70,8 @@ function WebGLRenderer( parameters = {} ) {
 		_premultipliedAlpha = parameters.premultipliedAlpha !== undefined ? parameters.premultipliedAlpha : true,
 		_preserveDrawingBuffer = parameters.preserveDrawingBuffer !== undefined ? parameters.preserveDrawingBuffer : false,
 		_powerPreference = parameters.powerPreference !== undefined ? parameters.powerPreference : 'default',
-		_failIfMajorPerformanceCaveat = parameters.failIfMajorPerformanceCaveat !== undefined ? parameters.failIfMajorPerformanceCaveat : false;
+		_failIfMajorPerformanceCaveat = parameters.failIfMajorPerformanceCaveat !== undefined ? parameters.failIfMajorPerformanceCaveat : false,
+		_profiler = parameters.profiler !== undefined ? parameters.profiler : null;
 
 	let currentRenderList = null;
 	let currentRenderState = null;
@@ -320,6 +321,7 @@ function WebGLRenderer( parameters = {} ) {
 		_this.shadowMap = shadowMap;
 		_this.state = state;
 		_this.info = info;
+		_this.profiler = _profiler;
 
 	}
 
@@ -1011,6 +1013,12 @@ function WebGLRenderer( parameters = {} ) {
 
 		renderListStack.push( currentRenderList );
 
+		if ( this.profiler !== null ) {
+
+			this.profiler.startRenderList();
+
+		}
+
 		projectObject( scene, camera, 0, _this.sortObjects );
 
 		currentRenderList.finish();
@@ -1114,6 +1122,12 @@ function WebGLRenderer( parameters = {} ) {
 		} else {
 
 			currentRenderList = null;
+
+		}
+
+		if ( this.profiler !== null ) {
+
+			this.profiler.endRenderList();
 
 		}
 
@@ -1241,13 +1255,63 @@ function WebGLRenderer( parameters = {} ) {
 
 		currentRenderState.setupLightsView( camera );
 
+		if ( _this.profiler !== null ) {
+
+			_this.profiler.startTransmissiveObjectsPre();
+
+		}
+
 		if ( transmissiveObjects.length > 0 ) renderTransmissionPass( opaqueObjects, scene, camera );
+
+		if ( _this.profiler !== null ) {
+
+			_this.profiler.endTransmissiveObjectsPre();
+
+		}
 
 		if ( viewport ) state.viewport( _currentViewport.copy( viewport ) );
 
+		if ( _this.profiler !== null ) {
+
+			_this.profiler.startOpaqueObjects();
+
+		}
+
 		if ( opaqueObjects.length > 0 ) renderObjects( opaqueObjects, scene, camera );
+
+		if ( _this.profiler !== null ) {
+
+			_this.profiler.endOpaqueObjects();
+
+		}
+
+		if ( _this.profiler !== null ) {
+
+			_this.profiler.startTransmissiveObjectsPost();
+
+		}
+
 		if ( transmissiveObjects.length > 0 ) renderObjects( transmissiveObjects, scene, camera );
+
+		if ( _this.profiler !== null ) {
+
+			_this.profiler.endTransmissiveObjectsPost();
+
+		}
+
+		if ( _this.profiler !== null ) {
+
+			_this.profiler.startTransparentObjects();
+
+		}
+
 		if ( transparentObjects.length > 0 ) renderObjects( transparentObjects, scene, camera );
+
+		if ( _this.profiler !== null ) {
+
+			_this.profiler.endTransparentObjects();
+
+		}
 
 	}
 
@@ -1306,7 +1370,19 @@ function WebGLRenderer( parameters = {} ) {
 
 			if ( object.layers.test( camera.layers ) ) {
 
+				if ( _this.profiler !== null ) {
+
+					_this.profiler.startObject( object.name, (geometry.index || geometry.attributes.position).count / 3, material.type );
+
+				}
+
 				renderObject( object, scene, camera, geometry, material, group );
+
+				if ( _this.profiler !== null ) {
+
+					_this.profiler.endObject();
+
+				}
 
 			}
 
@@ -1591,7 +1667,19 @@ function WebGLRenderer( parameters = {} ) {
 
 		if ( needsProgramChange === true ) {
 
+			if ( _this.profiler !== null ) {
+
+				_this.profiler.startMaterialCompilation();
+
+			}
+
 			program = getProgram( material, scene, object );
+
+			if ( _this.profiler !== null ) {
+
+				_this.profiler.endMaterialCompilation();
+
+			}
 
 		}
 

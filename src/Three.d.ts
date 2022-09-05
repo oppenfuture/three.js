@@ -196,6 +196,7 @@ export * from './renderers/webgl/WebGLIndexedBufferRenderer';
 export * from './renderers/webgl/WebGLInfo';
 export * from './renderers/webgl/WebGLLights';
 export * from './renderers/webgl/WebGLObjects';
+export * from './renderers/webgl/WebGLProfiler';
 export * from './renderers/webgl/WebGLProgram';
 export * from './renderers/webgl/WebGLPrograms';
 export * from './renderers/webgl/WebGLProperties';

@@ -25,6 +25,7 @@ import { Vector3 } from '../math/Vector3';
 import { Box3 } from '../math/Box3';
 import { DataTexture2DArray } from '../textures/DataTexture2DArray';
 import { ColorRepresentation } from '../utils';
+import { WebGLProfiler } from '../Three';
 
 export interface Renderer {
     domElement: HTMLCanvasElement;
@@ -99,6 +100,8 @@ export interface WebGLRendererParameters {
      * default is false.
      */
     failIfMajorPerformanceCaveat?: boolean | undefined;
+
+    profiler?: WebGLProfiler | undefined;
 }
 
 export interface WebGLDebug {
@@ -204,6 +207,8 @@ export class WebGLRenderer implements Renderer {
     toneMappingExposure: number;
 
     info: WebGLInfo;
+
+    profiler: WebGLProfiler | null;
 
     shadowMap: WebGLShadowMap;
 

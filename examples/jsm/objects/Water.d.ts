@@ -16,6 +16,7 @@ export interface WaterOptions {
     fog?: boolean;
     objectSpaceNormal?: Vector3;
     subTreeOnlyVisibleInMirror?: Object3D;
+    skipMirrorRendering?: boolean;
 }
 
 export class Water extends Mesh {

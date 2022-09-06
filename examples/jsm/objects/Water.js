@@ -45,6 +45,7 @@ class Water extends Mesh {
 		const fog = options.fog !== undefined ? options.fog : false;
 		const objectSpaceNormal = options.objectSpaceNormal !== undefined ? options.objectSpaceNormal : new Vector3( 0, 0, 1 );
 		const subTreeOnlyVisibleInMirror = options.subTreeOnlyVisibleInMirror !== undefined ? options.subTreeOnlyVisibleInMirror : null;
+		const skipMirrorRendering = options.skipMirrorRendering === true ? true : false;
 
 		//
 
@@ -300,16 +301,20 @@ class Water extends Mesh {
 				subTreeOnlyVisibleInMirror.traverse(object => object.visible = true);
 			}
 
-			renderer.xr.enabled = false; // Avoid camera modification and recursion
-			renderer.shadowMap.autoUpdate = false; // Avoid re-computing shadows
-			renderer.toneMapping = NoToneMapping;
+			if ( !skipMirrorRendering ) {
 
-			renderer.setRenderTarget( renderTarget );
+				renderer.xr.enabled = false; // Avoid camera modification and recursion
+				renderer.shadowMap.autoUpdate = false; // Avoid re-computing shadows
+				renderer.toneMapping = NoToneMapping;
 
-			renderer.state.buffers.depth.setMask( true ); // make sure the depth buffer is writable so it can be properly cleared, see #18897
+				renderer.setRenderTarget( renderTarget );
 
-			if ( renderer.autoClear === false ) renderer.clear();
-			renderer.render( scene, mirrorCamera );
+				renderer.state.buffers.depth.setMask( true ); // make sure the depth buffer is writable so it can be properly cleared, see #18897
+
+				if ( renderer.autoClear === false ) renderer.clear();
+				renderer.render( scene, mirrorCamera );
+
+			}
 
 			scope.visible = true;
 			if (subTreeOnlyVisibleInMirror !== null) {

@@ -599,7 +599,7 @@ function WebGLRenderer( parameters = {} ) {
 
 		}
 
-		if ( capabilities.isWebGL2 && Texture.useSrgbTextures && map && map.isTexture && map.format === RGBAFormat && map.type === UnsignedByteType && map.encoding === sRGBEncoding ) {
+		if ( capabilities.isWebGL2 && Texture.useSrgbTextures && map && map.isTexture && map.format === RGBAFormat && map.type === UnsignedByteType && map.encoding === sRGBEncoding && !map.disableSRGBInternalFormat ) {
 
 			encoding = LinearEncoding; // disable inline decode for sRGB textures in WebGL 2
 

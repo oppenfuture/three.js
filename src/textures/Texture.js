@@ -76,7 +76,7 @@ class Texture extends EventDispatcher {
 		// In WebGL2, sRGB textures can be trancoded to Linear automatically, but reference to this issue: https://github.com/mrdoob/three.js/issues/26183
 		// there're performance issues when doing this, so you can set the sRGBToLinearWithShader to false to transcode the sRGB texture to Linear with
 		// shader, especially to those textures that are updated in each frame
-		this.sRGBToLinearWithShader = !Texture.useSrgbTextures;
+		this.sRGBToLinearWithShader = ! Texture.useSrgbTextures;
 
 	}
 

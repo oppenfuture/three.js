@@ -35,7 +35,7 @@
 
       import * as THREE from '@oppentech/three';
 
-      let camera, scene, renderer1, renderer2;
+      let camera, scene, renderer1, renderer2, texture;
 
       init();
 
@@ -52,8 +52,9 @@
         const mesh = new THREE.Mesh( geometry, material );
         scene.add( mesh );
 
-        new THREE.TextureLoader().load('textures/checkboard.png', ( texture ) => {
+        new THREE.TextureLoader().load('textures/checkboard.png', ( tex ) => {
 
+          texture = tex;
           texture.encoding = THREE.sRGBEncoding;
           material.map = texture;
           animate();
@@ -80,10 +81,10 @@
 
         requestAnimationFrame( animate );
 
-        THREE.Texture.useSrgbTextures = true;
+        texture.sRGBToLinearWithShader = false;
         renderer1.render( scene, camera );
 
-        THREE.Texture.useSrgbTextures = false;
+        texture.sRGBToLinearWithShader = true;
         renderer2.render( scene, camera );
 
       }

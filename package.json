@@ -8,7 +8,8 @@
   "exports": {
     ".": {
       "import": "./build/three.module.js",
-      "require": "./build/three.cjs"
+      "require": "./build/three.cjs",
+      "types": "./index.d.ts"
     },
     "./examples/fonts/*": "./examples/fonts/*",
     "./examples/jsm/*": "./examples/jsm/*",

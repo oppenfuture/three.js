@@ -12,7 +12,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 	const maxSamples = capabilities.maxSamples;
 	const hasMultisampledRenderToTexture = extensions.has( 'WEBGL_multisampled_render_to_texture' );
 	const MultisampledRenderToTextureExtension = hasMultisampledRenderToTexture ? extensions.get( 'WEBGL_multisampled_render_to_texture' ) : undefined;
-
+	const supportsInvalidateFramebuffer = typeof navigator === 'undefined' ? false : /OculusBrowser/g.test( navigator.userAgent );
 	const _videoTextures = new WeakMap();
 	let _canvas;
 
@@ -1599,7 +1599,14 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 				}
 
 				_gl.blitFramebuffer( 0, 0, width, height, 0, 0, width, height, mask, _gl.NEAREST );
-				_gl.invalidateFramebuffer( _gl.READ_FRAMEBUFFER, invalidationArray );
+
+
+				// https://github.com/mrdoob/three.js/pull/23692
+				if ( supportsInvalidateFramebuffer ) {
+
+					_gl.invalidateFramebuffer( _gl.READ_FRAMEBUFFER, invalidationArray );
+
+				}
 
 				state.bindFramebuffer( _gl.READ_FRAMEBUFFER, null );
 				state.bindFramebuffer( _gl.DRAW_FRAMEBUFFER, renderTargetProperties.__webglMultisampledFramebuffer );

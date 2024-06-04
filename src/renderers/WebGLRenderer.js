@@ -15,6 +15,7 @@ import {
 import { platform } from '../platform.js';
 import { Frustum } from '../math/Frustum.js';
 import { Matrix4 } from '../math/Matrix4.js';
+import { Vector2 } from '../math/Vector2.js';
 import { Vector3 } from '../math/Vector3.js';
 import { Vector4 } from '../math/Vector4.js';
 import { WebGLAnimation } from './webgl/WebGLAnimation.js';
@@ -170,6 +171,7 @@ function WebGLRenderer( parameters = {} ) {
 	const _projScreenMatrix = new Matrix4();
 
 	const _vector3 = new Vector3();
+	const _vector2 = new Vector2();
 
 	const _emptyScene = { background: null, fog: null, environment: null, overrideMaterial: null, layers: { test: () => false }, children: [], isScene: true, onBeforeRender: function () {}, onAfterRender: function () {} };
 
@@ -1254,7 +1256,7 @@ function WebGLRenderer( parameters = {} ) {
 			const needsAntialias = _antialias === true && capabilities.isWebGL2 === true;
 			const hasColorBufferHalfFloat = extensions.has( 'EXT_color_buffer_half_float' ) || ( capabilities.isWebGL2 && extensions.has( 'EXT_color_buffer_float' ) );
 
-			_transmissionRenderTarget = new WebGLRenderTarget( 1024, 1024, {
+			_transmissionRenderTarget = new WebGLRenderTarget( 1, 1, {
 				generateMipmaps: true,
 				type: hasColorBufferHalfFloat ? HalfFloatType : UnsignedByteType,
 				minFilter: LinearMipmapLinearFilter,
@@ -1262,6 +1264,9 @@ function WebGLRenderer( parameters = {} ) {
 			} );
 
 		}
+
+		_this.getDrawingBufferSize( _vector2 );
+		_transmissionRenderTarget.setSize( _vector2.x, _vector2.y );
 
 		const currentRenderTarget = _this.getRenderTarget();
 		_this.setRenderTarget( _transmissionRenderTarget );

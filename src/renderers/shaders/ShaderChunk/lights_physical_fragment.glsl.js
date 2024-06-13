@@ -18,7 +18,15 @@ material.roughness = min( material.roughness, 1.0 );
 
 		#ifdef USE_SPECULARINTENSITYMAP
 
-			specularIntensityFactor *= texture2D( specularIntensityMap, vUv ).a;
+			// use vUv2 if it exists, otherwise use vUv
+			// when use uv mapping, vUv will be wrong
+			specularIntensityFactor *= texture2D( specularIntensityMap,
+				#if defined( USE_LIGHTMAP ) || defined( USE_AOMAP )
+					vUv2
+				#else
+					vUv
+				#endif
+			).a;
 
 		#endif
 

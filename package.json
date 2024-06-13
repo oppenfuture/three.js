@@ -1,6 +1,6 @@
 {
   "name": "@oppentech/three",
-  "version": "0.137.14",
+  "version": "0.137.15",
   "description": "JavaScript 3D library",
   "type": "module",
   "main": "./build/three.js",

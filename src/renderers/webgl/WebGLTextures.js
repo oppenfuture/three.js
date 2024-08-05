@@ -262,6 +262,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 		if ( textureProperties.__webglInit === undefined ) return;
 
 		_gl.deleteTexture( textureProperties.__webglTexture );
+		delete textureProperties.__webglTexture;
 
 		properties.remove( texture );
 
@@ -279,6 +280,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 		if ( textureProperties.__webglTexture !== undefined ) {
 
 			_gl.deleteTexture( textureProperties.__webglTexture );
+			delete textureProperties.__webglTexture;
 
 			info.memory.textures --;
 

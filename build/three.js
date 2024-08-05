@@ -16884,6 +16884,7 @@
 
 			_gl.deleteTexture(textureProperties.__webglTexture);
 
+			delete textureProperties.__webglTexture;
 			properties.remove(texture);
 		}
 
@@ -16896,6 +16897,7 @@
 			if (textureProperties.__webglTexture !== undefined) {
 				_gl.deleteTexture(textureProperties.__webglTexture);
 
+				delete textureProperties.__webglTexture;
 				info.memory.textures--;
 			}
 

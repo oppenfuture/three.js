@@ -24,12 +24,13 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: 'npm'
+          cache: 'pnpm'
+      - name: Install pnpm
+        run: npm install -g pnpm
       - name: Install packages
-        run: npm ci
-
+        run: pnpm install
       - name: === Linting ===
-        run: npm run lint
+        run: pnpm run lint
 
   unit:
     name: "Unit testing"
@@ -41,16 +42,17 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: 'npm'
+          cache: 'pnpm'
+      - name: Install pnpm
+        run: npm install -g pnpm
       - name: Install packages
         run: |
-          npm ci
-          npm ci --prefix test
+          pnpm install
+          pnpm install --prefix test
       - name: Build
-        run: npm run build
-
+        run: pnpm run build
       - name: === Unit testing ===
-        run: npm run test-unit
+        run: pnpm run test-unit
 
   e2e:
     name: "E2E testing"
@@ -68,17 +70,18 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: 'npm'
+          cache: 'pnpm'
+      - name: Install pnpm
+        run: npm install -g pnpm
       - name: Install packages
         run: |
-          npm ci
-          npm ci --prefix test
-          sudo apt-get install xvfb
+          pnpm install
+          pnpm install --prefix test
+          sudo apt-get install -y xvfb
       - name: Build
-        run: npm run build
-
+        run: pnpm run build
       - name: === E2E testing ===
-        run: xvfb-run --auto-servernum npm run test-e2e
+        run: xvfb-run --auto-servernum pnpm run test-e2e
 
   e2e-cov:
     name: "Ready for release"
@@ -90,9 +93,10 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: 'npm'
+          cache: 'pnpm'
+      - name: Install pnpm
+        run: npm install -g pnpm
       - name: Install packages
-        run: npm ci
-
+        run: pnpm install
       - name: === Ready for release ===
-        run: npm run test-e2e-cov
+        run: pnpm run test-e2e-cov

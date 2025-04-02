@@ -16,13 +16,14 @@ jobs:
       - name: Install node
         uses: actions/setup-node@v2
         with:
-          node-version: 16
-          cache: 'npm'
+          node-version: 20
+      - name: Install pnpm
+        run: npm install -g pnpm
       - name: Install packages
-        run: npm ci
+        run: pnpm install
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
 
       - name: Output version number
         id: version
@@ -44,16 +45,17 @@ jobs:
       - name: Install node
         uses: actions/setup-node@v2
         with:
-          node-version: 16
-          cache: 'npm'
+          node-version: 20
+      - name: Install pnpm
+        run: npm install -g pnpm
       - name: Install packages
-        run: npm ci
+        run: pnpm install
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
 
       - name: Install deployment packages
-        run: npm ci
+        run: pnpm install
         working-directory: deployment
 
       - name: Deploy to OSS
@@ -73,13 +75,14 @@ jobs:
       - name: Install node
         uses: actions/setup-node@v2
         with:
-          node-version: 16
-          cache: 'npm'
+          node-version: 20
+      - name: Install pnpm
+        run: npm install -g pnpm
       - name: Install packages
-        run: npm ci
+        run: pnpm install
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
 
       - name: Modify npm repository
         run: |
@@ -87,4 +90,4 @@ jobs:
           echo "//npm.internal.oppenlab.com/repository/npm_private/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> ~/.npmrc
 
       - name: Publish to npm
-        run: npm publish
+        run: pnpm publish

@@ -2,8 +2,8 @@ name: CD
 
 on:
   push:
-    branches: [ r137-dev ]
-  
+    branches: [r137-dev]
+
   workflow_dispatch:
 
 jobs:
@@ -12,20 +12,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
-      - name: Install node
-        uses: actions/setup-node@v2
+        uses: actions/checkout@v4
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
         with:
-          node-version: 16
-          cache: 'npm'
-      - name: Install packages
-        run: npm ci
-      
+          version: 10
+      - name: 使用 Nnode.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+      - name: 安装依赖
+        run: pnpm install
       - name: Build
-        run: npm run build
+        run: pnpm run build
 
       - name: Install deployment packages
-        run: npm ci
+        run: pnpm install
         working-directory: deployment
 
       - name: Deploy to OSS
@@ -38,22 +41,31 @@ jobs:
 
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install node
         uses: actions/setup-node@v2
         with:
-          node-version: 16
-          cache: 'npm'
+          node-version: 20
 
       - name: Modify version
         run: |
           sed -i 's/"version" *: *"\(.*\)"/"version": "\1-'$(git rev-parse HEAD)'"/g' package.json
 
-      - name: Install packages
-        run: npm ci
+      - uses: actions/checkout@v4
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: 使用 Nnode.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+      - name: 安装依赖
+        run: pnpm install
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
 
       - name: Modify npm repository
         run: |
@@ -61,4 +73,4 @@ jobs:
           echo "//npm.internal.oppenlab.com/repository/npm_private/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> ~/.npmrc
 
       - name: Publish to npm
-        run: npm publish
+        run: pnpm publish

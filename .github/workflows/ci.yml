@@ -19,38 +19,52 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install node
         uses: actions/setup-node@v2
         with:
-          node-version: 16
-          cache: 'npm'
-      - name: Install packages
-        run: npm ci
-
+          node-version: 20
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: 使用 Nnode.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+      - name: 安装依赖
+        run: pnpm install
+      - name: Build packages
+        run: pnpm run build
       - name: === Linting ===
-        run: npm run lint
+        run: pnpm run lint
 
   unit:
     name: "Unit testing"
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
-      - name: Install node
-        uses: actions/setup-node@v2
+        uses: actions/checkout@v4
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
         with:
-          node-version: 16
-          cache: 'npm'
+          version: 10
+      - name: 使用 Nnode.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+      - name: 安装依赖
+        run: pnpm install
       - name: Install packages
         run: |
-          npm ci
-          npm ci --prefix test
+          pnpm install
+          pnpm install --prefix test
       - name: Build
-        run: npm run build
-
+        run: pnpm run build
       - name: === Unit testing ===
-        run: npm run test-unit
+        run: pnpm run test-unit
 
   e2e:
     name: "E2E testing"
@@ -63,36 +77,50 @@ jobs:
       FORCE_COLOR: 1
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install node
         uses: actions/setup-node@v2
         with:
-          node-version: 16
-          cache: 'npm'
+          node-version: 20
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: 使用 Nnode.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
       - name: Install packages
         run: |
-          npm ci
-          npm ci --prefix test
-          sudo apt-get install xvfb
+          pnpm install
+          pnpm install --prefix test
+          sudo apt-get install -y xvfb
       - name: Build
-        run: npm run build
-
+        run: pnpm run build
       - name: === E2E testing ===
-        run: xvfb-run --auto-servernum npm run test-e2e
+        run: xvfb-run --auto-servernum pnpm run test-e2e
 
   e2e-cov:
     name: "Ready for release"
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install node
         uses: actions/setup-node@v2
         with:
-          node-version: 16
-          cache: 'npm'
-      - name: Install packages
-        run: npm ci
-
+          node-version: 20
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: 使用 Nnode.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+      - name: 安装依赖
+        run: pnpm install
       - name: === Ready for release ===
-        run: npm run test-e2e-cov
+        run: pnpm run test-e2e-cov

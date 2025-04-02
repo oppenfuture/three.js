@@ -19,15 +19,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install node
         uses: actions/setup-node@v2
         with:
           node-version: 20
-      - name: Install pnpm
-        run: npm install -g pnpm
-      - name: Install packages
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: 使用 Nnode.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+      - name: 安装依赖
         run: pnpm install
+      - name: Build packages
+        run: pnpm run build
       - name: === Linting ===
         run: pnpm run lint
 
@@ -36,13 +45,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
-      - name: Install node
-        uses: actions/setup-node@v2
+        uses: actions/checkout@v4
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
         with:
-          node-version: 20
-      - name: Install pnpm
-        run: npm install -g pnpm
+          version: 10
+      - name: 使用 Nnode.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+      - name: 安装依赖
+        run: pnpm install
       - name: Install packages
         run: |
           pnpm install
@@ -63,13 +77,20 @@ jobs:
       FORCE_COLOR: 1
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install node
         uses: actions/setup-node@v2
         with:
           node-version: 20
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: 使用 Nnode.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
       - name: Install packages
         run: |
           pnpm install
@@ -85,14 +106,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install node
         uses: actions/setup-node@v2
         with:
           node-version: 20
-      - name: Install pnpm
-        run: npm install -g pnpm
-      - name: Install packages
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: 使用 Nnode.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+      - name: 安装依赖
         run: pnpm install
       - name: === Ready for release ===
         run: pnpm run test-e2e-cov

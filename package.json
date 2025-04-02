@@ -1,6 +1,6 @@
 {
   "name": "@oppentech/three",
-  "version": "0.137.16",
+  "version": "0.137.17",
   "description": "JavaScript 3D library",
   "type": "module",
   "main": "./build/three.js",
@@ -143,6 +143,7 @@
     "rollup-plugin-visualizer": "^5.5.2",
     "servez": "^1.12.0"
   },
+
   "jspm": {
     "files": [
       "package.json",

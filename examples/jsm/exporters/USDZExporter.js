@@ -1,9 +1,11 @@
-import { sRGBEncoding } from '@oppentech/three';
+import { sRGBEncoding, DoubleSide } from '@oppentech/three';
 import * as fflate from '../libs/fflate.module.js';
 
+// Material/texture backport: three.js r160 d04539a76736ff500cae883d6a38b3dd8643c548.
+// See USDZExporter.backport.md for r137 adaptations and retained later fixes.
 class USDZExporter {
 
-	async parse( scene ) {
+	async parse( scene, options = {} ) {
 
 		const files = {};
 		const modelFileName = 'model.usda';
@@ -53,7 +55,7 @@ class USDZExporter {
 
 		} );
 
-		output += buildMaterials( materials, textures );
+		output += buildMaterials( materials, textures, options.quickLookCompatible );
 		output += '}\n';
 
 		files[ modelFileName ] = fflate.strToU8( output );
@@ -62,13 +64,11 @@ class USDZExporter {
 		for ( const id in textures ) {
 
 			const texture = textures[ id ];
-			const color = id.split( '_' )[ 1 ];
-			const isRGBA = texture.format === 1023;
 
-			const canvas = imageToCanvas( texture.image, color );
-			const blob = await new Promise( resolve => canvas.toBlob( resolve, isRGBA ? 'image/png' : 'image/jpeg', 1 ) );
+			const canvas = imageToCanvas( texture.image, texture.flipY );
+			const blob = await new Promise( resolve => canvas.toBlob( resolve, 'image/png' ) );
 
-			files[ `textures/Texture_${ id }.${ isRGBA ? 'png' : 'jpg' }` ] = new Uint8Array( await blob.arrayBuffer() );
+			files[ `textures/Texture_${ id }.png` ] = new Uint8Array( await blob.arrayBuffer() );
 
 		}
 
@@ -105,7 +105,7 @@ class USDZExporter {
 
 }
 
-function imageToCanvas( image, color ) {
+function imageToCanvas( image, flipY ) {
 
 	if ( ( typeof HTMLImageElement !== 'undefined' && image instanceof HTMLImageElement ) ||
 		( typeof HTMLCanvasElement !== 'undefined' && image instanceof HTMLCanvasElement ) ||
@@ -119,32 +119,23 @@ function imageToCanvas( image, color ) {
 		canvas.height = image.height * Math.min( 1, scale );
 
 		const context = canvas.getContext( '2d' );
-		context.drawImage( image, 0, 0, canvas.width, canvas.height );
 
-		if ( color !== undefined ) {
+		// TODO: We should be able to do this in the UsdTransform2d?
 
-			const hex = parseInt( color, 16 );
+		if ( flipY === true ) {
 
-			const r = ( hex >> 16 & 255 ) / 255;
-			const g = ( hex >> 8 & 255 ) / 255;
-			const b = ( hex & 255 ) / 255;
-
-			const imagedata = context.getImageData( 0, 0, canvas.width, canvas.height );
-			const data = imagedata.data;
-
-			for ( let i = 0; i < data.length; i += 4 ) {
-
-				data[ i + 0 ] = data[ i + 0 ] * r;
-				data[ i + 1 ] = data[ i + 1 ] * g;
-				data[ i + 2 ] = data[ i + 2 ] * b;
-
-			}
-
-			context.putImageData( imagedata, 0, 0 );
+			context.translate( 0, canvas.height );
+			context.scale( 1, - 1 );
 
 		}
 
+		context.drawImage( image, 0, 0, canvas.width, canvas.height );
+
 		return canvas;
+
+	} else {
+
+		throw new Error( 'THREE.USDZExporter: No valid image data found. Unable to process texture.' );
 
 	}
 
@@ -346,7 +337,7 @@ function buildVector2Array( attribute, count ) {
 
 // Materials
 
-function buildMaterials( materials, textures ) {
+function buildMaterials( materials, textures, quickLookCompatible = false ) {
 
 	const array = [];
 
@@ -354,7 +345,7 @@ function buildMaterials( materials, textures ) {
 
 		const material = materials[ uuid ];
 
-		array.push( buildMaterial( material, textures ) );
+		array.push( buildMaterial( material, textures, quickLookCompatible ) );
 
 	}
 
@@ -367,7 +358,7 @@ ${ array.join( '' ) }
 
 }
 
-function buildMaterial( material, textures ) {
+function buildMaterial( material, textures, quickLookCompatible = false ) {
 
 	// https://graphics.pixar.com/usd/docs/UsdPreviewSurface-Proposal.html
 
@@ -377,12 +368,50 @@ function buildMaterial( material, textures ) {
 
 	function buildTexture( texture, mapType, color ) {
 
-		const id = texture.id + ( color ? '_' + color.getHexString() : '' );
-		const isRGBA = texture.format === 1023;
+		// r137 predates Texture.source; keep texture identity plus image orientation.
+		const id = texture.id + '_' + texture.flipY;
 
 		textures[ id ] = texture;
 
-		let scaleBias = '';
+		const WRAPPINGS = {
+			1000: 'repeat', // RepeatWrapping
+			1001: 'clamp', // ClampToEdgeWrapping
+			1002: 'mirror' // MirroredRepeatWrapping
+		};
+
+		const repeat = texture.repeat.clone();
+		const offset = texture.offset.clone();
+		const rotation = texture.rotation;
+
+		// rotation is around the wrong point. after rotation we need to shift offset again so that we're rotating around the right spot
+		const xRotationOffset = Math.sin( rotation );
+		const yRotationOffset = Math.cos( rotation );
+
+		// texture coordinates start in the opposite corner, need to correct
+		offset.y = 1 - offset.y - repeat.y;
+
+		// turns out QuickLook is buggy and interprets texture repeat inverted/applies operations in a different order.
+		// Apple Feedback: 	FB10036297 and FB11442287
+		if ( quickLookCompatible ) {
+
+			// This is NOT correct yet in QuickLook, but comes close for a range of models.
+			// It becomes more incorrect the bigger the offset is
+
+			offset.x = offset.x / repeat.x;
+			offset.y = offset.y / repeat.y;
+
+			offset.x += xRotationOffset / repeat.x;
+			offset.y += yRotationOffset - 1;
+
+		} else {
+
+			// results match glTF results exactly. verified correct in usdview.
+			offset.x += xRotationOffset * repeat.x;
+			offset.y += ( 1 - yRotationOffset ) * repeat.y;
+
+		}
+
+		let scaleBias = color !== undefined ? 'float4 inputs:scale = ' + buildColor4( color, mapType === 'diffuse' ? material.opacity : 1 ) : '';
 
 		if ( mapType === 'normal' ) {
 
@@ -391,10 +420,6 @@ function buildMaterial( material, textures ) {
 			const scale = material.normalScale.x;
 			scaleBias = `float4 inputs:scale = (${ 2 * scale }, ${ 2 * scale }, 2, 1)
             float4 inputs:bias = (${ - scale }, ${ - scale }, -1, 0)`;
-
-		} else if ( mapType === 'diffuse' && ( material.transparent || material.alphaTest > 0 ) ) {
-
-			scaleBias = `float4 inputs:scale = (1, 1, 1, ${ material.opacity })`;
 
 		}
 
@@ -407,26 +432,33 @@ function buildMaterial( material, textures ) {
         {
             uniform token info:id = "UsdTransform2d"
             float2 inputs:in.connect = </Root/Materials/Material_${ material.id }/uvReader_st.outputs:result>
-            float2 inputs:scale = ${ buildVector2( texture.repeat ) }
-            float2 inputs:translation = ${ buildVector2( texture.offset ) }
+            float inputs:rotation = ${ ( rotation * ( 180 / Math.PI ) ).toFixed( PRECISION ) }
+            float2 inputs:scale = ${ buildVector2( repeat ) }
+            float2 inputs:translation = ${ buildVector2( offset ) }
             float2 outputs:result
         }
 
         def Shader "Texture_${ texture.id }_${ mapType }"
         {
             uniform token info:id = "UsdUVTexture"
-            asset inputs:file = @textures/Texture_${ id }.${ isRGBA ? 'png' : 'jpg' }@
+            asset inputs:file = @textures/Texture_${ id }.png@
             float2 inputs:st.connect = </Root/Materials/Material_${ material.id }/Transform2d_${ mapType }.outputs:result>
             token inputs:sourceColorSpace = "${ mapType !== 'normal' && texture.encoding === sRGBEncoding ? 'sRGB' : 'raw' }"
             ${ scaleBias }
-            token inputs:wrapS = "repeat"
-            token inputs:wrapT = "repeat"
+            token inputs:wrapS = "${ WRAPPINGS[ texture.wrapS ] }"
+            token inputs:wrapT = "${ WRAPPINGS[ texture.wrapT ] }"
             float outputs:r
             float outputs:g
             float outputs:b
             float outputs:a
             float3 outputs:rgb
         }`;
+
+	}
+
+	if ( material.side === DoubleSide ) {
+
+		console.warn( 'THREE.USDZExporter: USDZ does not support double sided materials', material );
 
 	}
 
@@ -556,6 +588,12 @@ ${ samplers.join( '\n' ) }
 function buildColor( color ) {
 
 	return `(${ color.r }, ${ color.g }, ${ color.b })`;
+
+}
+
+function buildColor4( color, alpha ) {
+
+	return `(${ color.r }, ${ color.g }, ${ color.b }, ${ alpha })`;
 
 }
 

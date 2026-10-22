@@ -538,7 +538,9 @@ function buildMaterial( material, textures, quickLookCompatible = false ) {
 
 	} else {
 
-		inputs.push( `${pad}float inputs:opacity = ${material.opacity}` );
+		// Opaque materials ignore alpha; retain the factor for blending and cutouts.
+		const opacity = material.transparent || material.alphaTest > 0 ? material.opacity : 1;
+		inputs.push( `${pad}float inputs:opacity = ${opacity}` );
 
 	}
 

@@ -16,6 +16,12 @@ The maintained source is `USDZExporter.js`. Generate `examples/js/exporters/USDZ
 - Keep raw normal scale/bias and the source glTF normalScale.x convention (3220e981e9b3d2a77d615bbf2aa9da114f6cf551 and 281815cbebe8c3bd48cde7f2cca6d2fced26141e). Do not undo the r137 loader's tangent-less normal convention.
 - Preserve async parse, warn/skip behavior, geometry, ZIP ordering, zero compression and 64-byte alignment.
 
+## Local opaque-alpha correctness repair (2026-10-23)
+
+The constant-opacity branch uses 1 when neither `transparent` nor a positive `alphaTest` enables alpha coverage. BLEND and MASK retain their source opacity; textured alpha connections, cutout thresholds and the diffuse texture opacity multiplier are unchanged. No source material is mutated. A MASK cutoff of zero accepts every fragment and is opaque, including a zero source alpha.
+
+This is a local correctness patch, not an upstream backport: executing the pinned r160 helper reproduces opaque opacity 0.4. ROOT's later r180/dev inspection also found the direct `material.opacity` assignment. The semantics follow [glTF 2.0 alpha coverage](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#alpha-coverage) and r137's existing loader `transparent`/`alphaTest` mapping. The frontend material harness loads real OPAQUE/BLEND/MASK GLBs, runs preflight, exports and checks opacity, texture-alpha multiplication, thresholds and source immutability.
+
 ## Capability limits
 
 Desktop checks establish emitted values and USD composition, not native Quick Look appearance. The upstream quickLookCompatible branch is retained verbatim; it is approximate per its upstream comments and is unverified on an actual device. The SDK uses the default false branch pending device evidence.

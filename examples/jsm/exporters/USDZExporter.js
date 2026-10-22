@@ -1,3 +1,4 @@
+import { sRGBEncoding } from '@oppentech/three';
 import * as fflate from '../libs/fflate.module.js';
 
 class USDZExporter {
@@ -10,7 +11,8 @@ class USDZExporter {
 		// model file should be first in USDZ archive so we init it here
 		files[ modelFileName ] = null;
 
-		let output = buildHeader();
+		let output = buildHeader( 'Root' );
+		output += 'def Xform "Root"\n{\n';
 
 		const materials = {};
 		const textures = {};
@@ -52,6 +54,7 @@ class USDZExporter {
 		} );
 
 		output += buildMaterials( materials, textures );
+		output += '}\n';
 
 		files[ modelFileName ] = fflate.strToU8( output );
 		output = null;
@@ -151,13 +154,14 @@ function imageToCanvas( image, color ) {
 
 const PRECISION = 7;
 
-function buildHeader() {
+function buildHeader( defaultPrim ) {
 
 	return `#usda 1.0
 (
     customLayerData = {
         string creator = "Three.js USDZExporter"
     }
+    defaultPrim = "${ defaultPrim }"
     metersPerUnit = 1
     upAxis = "Y"
 )
@@ -168,7 +172,7 @@ function buildHeader() {
 
 function buildUSDFileAsString( dataToInsert ) {
 
-	let output = buildHeader();
+	let output = buildHeader( 'Geometry' );
 	output += dataToInsert;
 	return fflate.strToU8( output );
 
@@ -189,12 +193,13 @@ function buildXform( object, geometry, material ) {
 
 	return `def Xform "${ name }" (
     prepend references = @./geometries/Geometry_${ geometry.id }.usd@</Geometry>
+    prepend apiSchemas = ["MaterialBindingAPI"]
 )
 {
     matrix4d xformOp:transform = ${ transform }
     uniform token[] xformOpOrder = ["xformOp:transform"]
 
-    rel material:binding = </Materials/Material_${ material.id }>
+    rel material:binding = </Root/Materials/Material_${ material.id }>
 }
 
 `;
@@ -244,7 +249,7 @@ function buildMesh( geometry ) {
             interpolation = "vertex"
         )
         point3f[] points = [${ buildVector3Array( attributes.position, count )}]
-        float2[] primvars:st = [${ buildVector2Array( attributes.uv, count )}] (
+        texCoord2f[] primvars:st = [${ buildVector2Array( attributes.uv, count )}] (
             interpolation = "vertex"
         )
         uniform token subdivisionScheme = "none"
@@ -377,6 +382,22 @@ function buildMaterial( material, textures ) {
 
 		textures[ id ] = texture;
 
+		let scaleBias = '';
+
+		if ( mapType === 'normal' ) {
+
+			// GLTFLoader negates normalScale.y for tangent-less glTF assets. As in
+			// upstream, export the source glTF scale without that renderer correction.
+			const scale = material.normalScale.x;
+			scaleBias = `float4 inputs:scale = (${ 2 * scale }, ${ 2 * scale }, 2, 1)
+            float4 inputs:bias = (${ - scale }, ${ - scale }, -1, 0)`;
+
+		} else if ( mapType === 'diffuse' && ( material.transparent || material.alphaTest > 0 ) ) {
+
+			scaleBias = `float4 inputs:scale = (1, 1, 1, ${ material.opacity })`;
+
+		}
+
 		return `
         def Shader "Transform2d_${ mapType }" (
             sdrMetadata = {
@@ -385,7 +406,7 @@ function buildMaterial( material, textures ) {
         )
         {
             uniform token info:id = "UsdTransform2d"
-            float2 inputs:in.connect = </Materials/Material_${ material.id }/uvReader_st.outputs:result>
+            float2 inputs:in.connect = </Root/Materials/Material_${ material.id }/uvReader_st.outputs:result>
             float2 inputs:scale = ${ buildVector2( texture.repeat ) }
             float2 inputs:translation = ${ buildVector2( texture.offset ) }
             float2 outputs:result
@@ -395,12 +416,15 @@ function buildMaterial( material, textures ) {
         {
             uniform token info:id = "UsdUVTexture"
             asset inputs:file = @textures/Texture_${ id }.${ isRGBA ? 'png' : 'jpg' }@
-            float2 inputs:st.connect = </Materials/Material_${ material.id }/Transform2d_${ mapType }.outputs:result>
+            float2 inputs:st.connect = </Root/Materials/Material_${ material.id }/Transform2d_${ mapType }.outputs:result>
+            token inputs:sourceColorSpace = "${ mapType !== 'normal' && texture.encoding === sRGBEncoding ? 'sRGB' : 'raw' }"
+            ${ scaleBias }
             token inputs:wrapS = "repeat"
             token inputs:wrapT = "repeat"
             float outputs:r
             float outputs:g
             float outputs:b
+            float outputs:a
             float3 outputs:rgb
         }`;
 
@@ -408,7 +432,7 @@ function buildMaterial( material, textures ) {
 
 	if ( material.map !== null ) {
 
-		inputs.push( `${ pad }color3f inputs:diffuseColor.connect = </Materials/Material_${ material.id }/Texture_${ material.map.id }_diffuse.outputs:rgb>` );
+		inputs.push( `${ pad }color3f inputs:diffuseColor.connect = </Root/Materials/Material_${ material.id }/Texture_${ material.map.id }_diffuse.outputs:rgb>` );
 
 		samplers.push( buildTexture( material.map, 'diffuse', material.color ) );
 
@@ -420,7 +444,7 @@ function buildMaterial( material, textures ) {
 
 	if ( material.emissiveMap !== null ) {
 
-		inputs.push( `${ pad }color3f inputs:emissiveColor.connect = </Materials/Material_${ material.id }/Texture_${ material.emissiveMap.id }_emissive.outputs:rgb>` );
+		inputs.push( `${ pad }color3f inputs:emissiveColor.connect = </Root/Materials/Material_${ material.id }/Texture_${ material.emissiveMap.id }_emissive.outputs:rgb>` );
 
 		samplers.push( buildTexture( material.emissiveMap, 'emissive' ) );
 
@@ -432,7 +456,7 @@ function buildMaterial( material, textures ) {
 
 	if ( material.normalMap !== null ) {
 
-		inputs.push( `${ pad }normal3f inputs:normal.connect = </Materials/Material_${ material.id }/Texture_${ material.normalMap.id }_normal.outputs:rgb>` );
+		inputs.push( `${ pad }normal3f inputs:normal.connect = </Root/Materials/Material_${ material.id }/Texture_${ material.normalMap.id }_normal.outputs:rgb>` );
 
 		samplers.push( buildTexture( material.normalMap, 'normal' ) );
 
@@ -440,7 +464,7 @@ function buildMaterial( material, textures ) {
 
 	if ( material.aoMap !== null ) {
 
-		inputs.push( `${ pad }float inputs:occlusion.connect = </Materials/Material_${ material.id }/Texture_${ material.aoMap.id }_occlusion.outputs:r>` );
+		inputs.push( `${ pad }float inputs:occlusion.connect = </Root/Materials/Material_${ material.id }/Texture_${ material.aoMap.id }_occlusion.outputs:r>` );
 
 		samplers.push( buildTexture( material.aoMap, 'occlusion' ) );
 
@@ -448,7 +472,7 @@ function buildMaterial( material, textures ) {
 
 	if ( material.roughnessMap !== null && material.roughness === 1 ) {
 
-		inputs.push( `${ pad }float inputs:roughness.connect = </Materials/Material_${ material.id }/Texture_${ material.roughnessMap.id }_roughness.outputs:g>` );
+		inputs.push( `${ pad }float inputs:roughness.connect = </Root/Materials/Material_${ material.id }/Texture_${ material.roughnessMap.id }_roughness.outputs:g>` );
 
 		samplers.push( buildTexture( material.roughnessMap, 'roughness' ) );
 
@@ -460,7 +484,7 @@ function buildMaterial( material, textures ) {
 
 	if ( material.metalnessMap !== null && material.metalness === 1 ) {
 
-		inputs.push( `${ pad }float inputs:metallic.connect = </Materials/Material_${ material.id }/Texture_${ material.metalnessMap.id }_metallic.outputs:b>` );
+		inputs.push( `${ pad }float inputs:metallic.connect = </Root/Materials/Material_${ material.id }/Texture_${ material.metalnessMap.id }_metallic.outputs:b>` );
 
 		samplers.push( buildTexture( material.metalnessMap, 'metallic' ) );
 
@@ -472,14 +496,23 @@ function buildMaterial( material, textures ) {
 
 	if ( material.alphaMap !== null ) {
 
-		inputs.push( `${pad}float inputs:opacity.connect = </Materials/Material_${material.id}/Texture_${material.alphaMap.id}_opacity.outputs:r>` );
-		inputs.push( `${pad}float inputs:opacityThreshold = 0.0001` );
+		inputs.push( `${pad}float inputs:opacity.connect = </Root/Materials/Material_${material.id}/Texture_${material.alphaMap.id}_opacity.outputs:r>` );
 
 		samplers.push( buildTexture( material.alphaMap, 'opacity' ) );
+
+	} else if ( material.map !== null && ( material.transparent || material.alphaTest > 0 ) ) {
+
+		inputs.push( `${ pad }float inputs:opacity.connect = </Root/Materials/Material_${ material.id }/Texture_${ material.map.id }_diffuse.outputs:a>` );
 
 	} else {
 
 		inputs.push( `${pad}float inputs:opacity = ${material.opacity}` );
+
+	}
+
+	if ( material.alphaTest > 0 || material.alphaMap !== null ) {
+
+		inputs.push( `${ pad }float inputs:opacityThreshold = ${ material.alphaTest > 0 ? material.alphaTest : 0.0001 }` );
 
 	}
 
@@ -502,13 +535,13 @@ ${ inputs.join( '\n' ) }
             token outputs:surface
         }
 
-        token outputs:surface.connect = </Materials/Material_${ material.id }/PreviewSurface.outputs:surface>
-        token inputs:frame:stPrimvarName = "st"
+        token outputs:surface.connect = </Root/Materials/Material_${ material.id }/PreviewSurface.outputs:surface>
+        string inputs:frame:stPrimvarName = "st"
 
         def Shader "uvReader_st"
         {
             uniform token info:id = "UsdPrimvarReader_float2"
-            token inputs:varname.connect = </Materials/Material_${ material.id }.inputs:frame:stPrimvarName>
+            string inputs:varname.connect = </Root/Materials/Material_${ material.id }.inputs:frame:stPrimvarName>
             float2 inputs:fallback = (0.0, 0.0)
             float2 outputs:result
         }

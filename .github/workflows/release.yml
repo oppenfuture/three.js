@@ -7,79 +7,117 @@ jobs:
   push:
     name: Push to repository
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      dist_tag: ${{ steps.version.outputs.dist_tag }}
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
+          ref: ${{ github.ref_name }}
           token: ${{ secrets._GITHUB_PUSH_PAT }}
 
-      - name: Install node
-        uses: actions/setup-node@v2
-        with:
-          node-version: 20
       - name: Install pnpm
-        run: npm install -g pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.22.0
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.5
+          cache: pnpm
+
+      - name: Validate release version and select npm tag
+        id: version
+        run: |
+          node --input-type=commonjs <<'NODE'
+          const fs = require('node:fs');
+          const { execFileSync } = require('node:child_process');
+          const { name, version } = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          if (process.env.GITHUB_REF_TYPE !== 'branch') throw new Error('Release must run on the selected release branch, not a tag.');
+          if (execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim() !== process.env.GITHUB_SHA) {
+            throw new Error('Selected branch has moved since dispatch; rerun Release at its current revision.');
+          }
+          const stable = /^0\.137\.(0|[1-9]\d*)$/;
+          const beta = /^0\.137\.(0|[1-9]\d*)-beta\.(0|[1-9]\d*)$/;
+          const distTag = beta.test(version) ? 'beta' : stable.test(version) ? 'latest' : null;
+          if (name !== '@oppentech/three' || !distTag) {
+            throw new Error('Release expects @oppentech/three version 0.137.N or 0.137.N-beta.N.');
+          }
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\ndist_tag=${distTag}\n`);
+          NODE
+
       - name: Install packages
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm run build
-
-      - name: Output version number
-        id: version
-        run: |
-          export version=$(cat package.json | grep '"version"'| awk -F '"' '{print $4}')
-          echo ::set-output name=version::"$version"
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Release ${{ steps.version.outputs.version }}
+          branch: ${{ github.ref_name }}
+          skip_checkout: true
+          file_pattern: build/three.js build/three.cjs build/three.min.js build/three.module.js
 
   deploy:
     name: Deploy to OSS
     runs-on: ubuntu-latest
+    needs: push
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
-      - name: Install node
-        uses: actions/setup-node@v2
+        uses: actions/checkout@v4
         with:
-          node-version: 20
+          ref: ${{ github.sha }}
       - name: Install pnpm
-        run: npm install -g pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.22.0
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.5
+          cache: pnpm
       - name: Install packages
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm run build
 
       - name: Install deployment packages
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
         working-directory: deployment
 
       - name: Deploy to OSS
+        env:
+          RELEASE_VERSION: ${{ needs.push.outputs.version }}
         run: |
-          export version=$(cat ../package.json | grep '"version"'| awk -F '"' '{print $4}')
-          node index.js ${{ secrets.ALIYUN_SECRET_ID }} ${{ secrets.ALIYUN_SECRET_KEY }} oss-cn-beijing oppentech-static ../build/three.min.js /holodeck/js/three-$version.js
-          node index.js ${{ secrets.ALIYUN_SECRET_ID }} ${{ secrets.ALIYUN_SECRET_KEY }} oss-cn-beijing oppentech-test ../build/three.min.js /holodeck/js/three-$version.js
+          node index.js ${{ secrets.ALIYUN_SECRET_ID }} ${{ secrets.ALIYUN_SECRET_KEY }} oss-cn-beijing oppentech-static ../build/three.min.js "/holodeck/js/three-$RELEASE_VERSION.js"
+          node index.js ${{ secrets.ALIYUN_SECRET_ID }} ${{ secrets.ALIYUN_SECRET_KEY }} oss-cn-beijing oppentech-test ../build/three.min.js "/holodeck/js/three-$RELEASE_VERSION.js"
         working-directory: deployment
 
   publish:
     name: Publish to npm
     runs-on: ubuntu-latest
+    needs: push
 
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
-      - name: Install node
-        uses: actions/setup-node@v2
+        uses: actions/checkout@v4
         with:
-          node-version: 20
+          ref: ${{ github.sha }}
       - name: Install pnpm
-        run: npm install -g pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.22.0
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.5
+          cache: pnpm
       - name: Install packages
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm run build
@@ -90,4 +128,6 @@ jobs:
           echo "//npm.internal.oppenlab.com/repository/npm_private/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> ~/.npmrc
 
       - name: Publish to npm
-        run: pnpm publish --no-git-checks
+        env:
+          DIST_TAG: ${{ needs.push.outputs.dist_tag }}
+        run: pnpm publish --tag "$DIST_TAG" --no-git-checks

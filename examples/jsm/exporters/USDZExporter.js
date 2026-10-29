@@ -1,8 +1,11 @@
+import { sRGBEncoding, DoubleSide } from '@oppentech/three';
 import * as fflate from '../libs/fflate.module.js';
 
+// Material/texture backport: three.js r160 d04539a76736ff500cae883d6a38b3dd8643c548.
+// See USDZExporter.backport.md for r137 adaptations and retained later fixes.
 class USDZExporter {
 
-	async parse( scene ) {
+	async parse( scene, options = {} ) {
 
 		const files = {};
 		const modelFileName = 'model.usda';
@@ -10,7 +13,8 @@ class USDZExporter {
 		// model file should be first in USDZ archive so we init it here
 		files[ modelFileName ] = null;
 
-		let output = buildHeader();
+		let output = buildHeader( 'Root' );
+		output += 'def Xform "Root"\n{\n';
 
 		const materials = {};
 		const textures = {};
@@ -51,7 +55,8 @@ class USDZExporter {
 
 		} );
 
-		output += buildMaterials( materials, textures );
+		output += buildMaterials( materials, textures, options.quickLookCompatible );
+		output += '}\n';
 
 		files[ modelFileName ] = fflate.strToU8( output );
 		output = null;
@@ -59,13 +64,11 @@ class USDZExporter {
 		for ( const id in textures ) {
 
 			const texture = textures[ id ];
-			const color = id.split( '_' )[ 1 ];
-			const isRGBA = texture.format === 1023;
 
-			const canvas = imageToCanvas( texture.image, color );
-			const blob = await new Promise( resolve => canvas.toBlob( resolve, isRGBA ? 'image/png' : 'image/jpeg', 1 ) );
+			const canvas = imageToCanvas( texture.image, texture.flipY );
+			const blob = await new Promise( resolve => canvas.toBlob( resolve, 'image/png' ) );
 
-			files[ `textures/Texture_${ id }.${ isRGBA ? 'png' : 'jpg' }` ] = new Uint8Array( await blob.arrayBuffer() );
+			files[ `textures/Texture_${ id }.png` ] = new Uint8Array( await blob.arrayBuffer() );
 
 		}
 
@@ -102,7 +105,7 @@ class USDZExporter {
 
 }
 
-function imageToCanvas( image, color ) {
+function imageToCanvas( image, flipY ) {
 
 	if ( ( typeof HTMLImageElement !== 'undefined' && image instanceof HTMLImageElement ) ||
 		( typeof HTMLCanvasElement !== 'undefined' && image instanceof HTMLCanvasElement ) ||
@@ -116,32 +119,23 @@ function imageToCanvas( image, color ) {
 		canvas.height = image.height * Math.min( 1, scale );
 
 		const context = canvas.getContext( '2d' );
-		context.drawImage( image, 0, 0, canvas.width, canvas.height );
 
-		if ( color !== undefined ) {
+		// TODO: We should be able to do this in the UsdTransform2d?
 
-			const hex = parseInt( color, 16 );
+		if ( flipY === true ) {
 
-			const r = ( hex >> 16 & 255 ) / 255;
-			const g = ( hex >> 8 & 255 ) / 255;
-			const b = ( hex & 255 ) / 255;
-
-			const imagedata = context.getImageData( 0, 0, canvas.width, canvas.height );
-			const data = imagedata.data;
-
-			for ( let i = 0; i < data.length; i += 4 ) {
-
-				data[ i + 0 ] = data[ i + 0 ] * r;
-				data[ i + 1 ] = data[ i + 1 ] * g;
-				data[ i + 2 ] = data[ i + 2 ] * b;
-
-			}
-
-			context.putImageData( imagedata, 0, 0 );
+			context.translate( 0, canvas.height );
+			context.scale( 1, - 1 );
 
 		}
 
+		context.drawImage( image, 0, 0, canvas.width, canvas.height );
+
 		return canvas;
+
+	} else {
+
+		throw new Error( 'THREE.USDZExporter: No valid image data found. Unable to process texture.' );
 
 	}
 
@@ -151,13 +145,14 @@ function imageToCanvas( image, color ) {
 
 const PRECISION = 7;
 
-function buildHeader() {
+function buildHeader( defaultPrim ) {
 
 	return `#usda 1.0
 (
     customLayerData = {
         string creator = "Three.js USDZExporter"
     }
+    defaultPrim = "${ defaultPrim }"
     metersPerUnit = 1
     upAxis = "Y"
 )
@@ -168,7 +163,7 @@ function buildHeader() {
 
 function buildUSDFileAsString( dataToInsert ) {
 
-	let output = buildHeader();
+	let output = buildHeader( 'Geometry' );
 	output += dataToInsert;
 	return fflate.strToU8( output );
 
@@ -189,12 +184,13 @@ function buildXform( object, geometry, material ) {
 
 	return `def Xform "${ name }" (
     prepend references = @./geometries/Geometry_${ geometry.id }.usd@</Geometry>
+    prepend apiSchemas = ["MaterialBindingAPI"]
 )
 {
     matrix4d xformOp:transform = ${ transform }
     uniform token[] xformOpOrder = ["xformOp:transform"]
 
-    rel material:binding = </Materials/Material_${ material.id }>
+    rel material:binding = </Root/Materials/Material_${ material.id }>
 }
 
 `;
@@ -244,7 +240,7 @@ function buildMesh( geometry ) {
             interpolation = "vertex"
         )
         point3f[] points = [${ buildVector3Array( attributes.position, count )}]
-        float2[] primvars:st = [${ buildVector2Array( attributes.uv, count )}] (
+        texCoord2f[] primvars:st = [${ buildVector2Array( attributes.uv, count )}] (
             interpolation = "vertex"
         )
         uniform token subdivisionScheme = "none"
@@ -341,7 +337,7 @@ function buildVector2Array( attribute, count ) {
 
 // Materials
 
-function buildMaterials( materials, textures ) {
+function buildMaterials( materials, textures, quickLookCompatible = false ) {
 
 	const array = [];
 
@@ -349,7 +345,7 @@ function buildMaterials( materials, textures ) {
 
 		const material = materials[ uuid ];
 
-		array.push( buildMaterial( material, textures ) );
+		array.push( buildMaterial( material, textures, quickLookCompatible ) );
 
 	}
 
@@ -362,7 +358,7 @@ ${ array.join( '' ) }
 
 }
 
-function buildMaterial( material, textures ) {
+function buildMaterial( material, textures, quickLookCompatible = false ) {
 
 	// https://graphics.pixar.com/usd/docs/UsdPreviewSurface-Proposal.html
 
@@ -372,10 +368,60 @@ function buildMaterial( material, textures ) {
 
 	function buildTexture( texture, mapType, color ) {
 
-		const id = texture.id + ( color ? '_' + color.getHexString() : '' );
-		const isRGBA = texture.format === 1023;
+		// r137 predates Texture.source; keep texture identity plus image orientation.
+		const id = texture.id + '_' + texture.flipY;
 
 		textures[ id ] = texture;
+
+		const WRAPPINGS = {
+			1000: 'repeat', // RepeatWrapping
+			1001: 'clamp', // ClampToEdgeWrapping
+			1002: 'mirror' // MirroredRepeatWrapping
+		};
+
+		const repeat = texture.repeat.clone();
+		const offset = texture.offset.clone();
+		const rotation = texture.rotation;
+
+		// rotation is around the wrong point. after rotation we need to shift offset again so that we're rotating around the right spot
+		const xRotationOffset = Math.sin( rotation );
+		const yRotationOffset = Math.cos( rotation );
+
+		// texture coordinates start in the opposite corner, need to correct
+		offset.y = 1 - offset.y - repeat.y;
+
+		// turns out QuickLook is buggy and interprets texture repeat inverted/applies operations in a different order.
+		// Apple Feedback: 	FB10036297 and FB11442287
+		if ( quickLookCompatible ) {
+
+			// This is NOT correct yet in QuickLook, but comes close for a range of models.
+			// It becomes more incorrect the bigger the offset is
+
+			offset.x = offset.x / repeat.x;
+			offset.y = offset.y / repeat.y;
+
+			offset.x += xRotationOffset / repeat.x;
+			offset.y += yRotationOffset - 1;
+
+		} else {
+
+			// results match glTF results exactly. verified correct in usdview.
+			offset.x += xRotationOffset * repeat.x;
+			offset.y += ( 1 - yRotationOffset ) * repeat.y;
+
+		}
+
+		let scaleBias = color !== undefined ? 'float4 inputs:scale = ' + buildColor4( color, mapType === 'diffuse' ? material.opacity : 1 ) : '';
+
+		if ( mapType === 'normal' ) {
+
+			// GLTFLoader negates normalScale.y for tangent-less glTF assets. As in
+			// upstream, export the source glTF scale without that renderer correction.
+			const scale = material.normalScale.x;
+			scaleBias = `float4 inputs:scale = (${ 2 * scale }, ${ 2 * scale }, 2, 1)
+            float4 inputs:bias = (${ - scale }, ${ - scale }, -1, 0)`;
+
+		}
 
 		return `
         def Shader "Transform2d_${ mapType }" (
@@ -385,30 +431,40 @@ function buildMaterial( material, textures ) {
         )
         {
             uniform token info:id = "UsdTransform2d"
-            float2 inputs:in.connect = </Materials/Material_${ material.id }/uvReader_st.outputs:result>
-            float2 inputs:scale = ${ buildVector2( texture.repeat ) }
-            float2 inputs:translation = ${ buildVector2( texture.offset ) }
+            float2 inputs:in.connect = </Root/Materials/Material_${ material.id }/uvReader_st.outputs:result>
+            float inputs:rotation = ${ ( rotation * ( 180 / Math.PI ) ).toFixed( PRECISION ) }
+            float2 inputs:scale = ${ buildVector2( repeat ) }
+            float2 inputs:translation = ${ buildVector2( offset ) }
             float2 outputs:result
         }
 
         def Shader "Texture_${ texture.id }_${ mapType }"
         {
             uniform token info:id = "UsdUVTexture"
-            asset inputs:file = @textures/Texture_${ id }.${ isRGBA ? 'png' : 'jpg' }@
-            float2 inputs:st.connect = </Materials/Material_${ material.id }/Transform2d_${ mapType }.outputs:result>
-            token inputs:wrapS = "repeat"
-            token inputs:wrapT = "repeat"
+            asset inputs:file = @textures/Texture_${ id }.png@
+            float2 inputs:st.connect = </Root/Materials/Material_${ material.id }/Transform2d_${ mapType }.outputs:result>
+            token inputs:sourceColorSpace = "${ mapType !== 'normal' && texture.encoding === sRGBEncoding ? 'sRGB' : 'raw' }"
+            ${ scaleBias }
+            token inputs:wrapS = "${ WRAPPINGS[ texture.wrapS ] }"
+            token inputs:wrapT = "${ WRAPPINGS[ texture.wrapT ] }"
             float outputs:r
             float outputs:g
             float outputs:b
+            float outputs:a
             float3 outputs:rgb
         }`;
 
 	}
 
+	if ( material.side === DoubleSide ) {
+
+		console.warn( 'THREE.USDZExporter: USDZ does not support double sided materials', material );
+
+	}
+
 	if ( material.map !== null ) {
 
-		inputs.push( `${ pad }color3f inputs:diffuseColor.connect = </Materials/Material_${ material.id }/Texture_${ material.map.id }_diffuse.outputs:rgb>` );
+		inputs.push( `${ pad }color3f inputs:diffuseColor.connect = </Root/Materials/Material_${ material.id }/Texture_${ material.map.id }_diffuse.outputs:rgb>` );
 
 		samplers.push( buildTexture( material.map, 'diffuse', material.color ) );
 
@@ -420,7 +476,7 @@ function buildMaterial( material, textures ) {
 
 	if ( material.emissiveMap !== null ) {
 
-		inputs.push( `${ pad }color3f inputs:emissiveColor.connect = </Materials/Material_${ material.id }/Texture_${ material.emissiveMap.id }_emissive.outputs:rgb>` );
+		inputs.push( `${ pad }color3f inputs:emissiveColor.connect = </Root/Materials/Material_${ material.id }/Texture_${ material.emissiveMap.id }_emissive.outputs:rgb>` );
 
 		samplers.push( buildTexture( material.emissiveMap, 'emissive' ) );
 
@@ -432,7 +488,7 @@ function buildMaterial( material, textures ) {
 
 	if ( material.normalMap !== null ) {
 
-		inputs.push( `${ pad }normal3f inputs:normal.connect = </Materials/Material_${ material.id }/Texture_${ material.normalMap.id }_normal.outputs:rgb>` );
+		inputs.push( `${ pad }normal3f inputs:normal.connect = </Root/Materials/Material_${ material.id }/Texture_${ material.normalMap.id }_normal.outputs:rgb>` );
 
 		samplers.push( buildTexture( material.normalMap, 'normal' ) );
 
@@ -440,7 +496,7 @@ function buildMaterial( material, textures ) {
 
 	if ( material.aoMap !== null ) {
 
-		inputs.push( `${ pad }float inputs:occlusion.connect = </Materials/Material_${ material.id }/Texture_${ material.aoMap.id }_occlusion.outputs:r>` );
+		inputs.push( `${ pad }float inputs:occlusion.connect = </Root/Materials/Material_${ material.id }/Texture_${ material.aoMap.id }_occlusion.outputs:r>` );
 
 		samplers.push( buildTexture( material.aoMap, 'occlusion' ) );
 
@@ -448,7 +504,7 @@ function buildMaterial( material, textures ) {
 
 	if ( material.roughnessMap !== null && material.roughness === 1 ) {
 
-		inputs.push( `${ pad }float inputs:roughness.connect = </Materials/Material_${ material.id }/Texture_${ material.roughnessMap.id }_roughness.outputs:g>` );
+		inputs.push( `${ pad }float inputs:roughness.connect = </Root/Materials/Material_${ material.id }/Texture_${ material.roughnessMap.id }_roughness.outputs:g>` );
 
 		samplers.push( buildTexture( material.roughnessMap, 'roughness' ) );
 
@@ -460,7 +516,7 @@ function buildMaterial( material, textures ) {
 
 	if ( material.metalnessMap !== null && material.metalness === 1 ) {
 
-		inputs.push( `${ pad }float inputs:metallic.connect = </Materials/Material_${ material.id }/Texture_${ material.metalnessMap.id }_metallic.outputs:b>` );
+		inputs.push( `${ pad }float inputs:metallic.connect = </Root/Materials/Material_${ material.id }/Texture_${ material.metalnessMap.id }_metallic.outputs:b>` );
 
 		samplers.push( buildTexture( material.metalnessMap, 'metallic' ) );
 
@@ -472,14 +528,25 @@ function buildMaterial( material, textures ) {
 
 	if ( material.alphaMap !== null ) {
 
-		inputs.push( `${pad}float inputs:opacity.connect = </Materials/Material_${material.id}/Texture_${material.alphaMap.id}_opacity.outputs:r>` );
-		inputs.push( `${pad}float inputs:opacityThreshold = 0.0001` );
+		inputs.push( `${pad}float inputs:opacity.connect = </Root/Materials/Material_${material.id}/Texture_${material.alphaMap.id}_opacity.outputs:r>` );
 
 		samplers.push( buildTexture( material.alphaMap, 'opacity' ) );
 
+	} else if ( material.map !== null && ( material.transparent || material.alphaTest > 0 ) ) {
+
+		inputs.push( `${ pad }float inputs:opacity.connect = </Root/Materials/Material_${ material.id }/Texture_${ material.map.id }_diffuse.outputs:a>` );
+
 	} else {
 
-		inputs.push( `${pad}float inputs:opacity = ${material.opacity}` );
+		// Opaque materials ignore alpha; retain the factor for blending and cutouts.
+		const opacity = material.transparent || material.alphaTest > 0 ? material.opacity : 1;
+		inputs.push( `${pad}float inputs:opacity = ${opacity}` );
+
+	}
+
+	if ( material.alphaTest > 0 || material.alphaMap !== null ) {
+
+		inputs.push( `${ pad }float inputs:opacityThreshold = ${ material.alphaTest > 0 ? material.alphaTest : 0.0001 }` );
 
 	}
 
@@ -502,13 +569,13 @@ ${ inputs.join( '\n' ) }
             token outputs:surface
         }
 
-        token outputs:surface.connect = </Materials/Material_${ material.id }/PreviewSurface.outputs:surface>
-        token inputs:frame:stPrimvarName = "st"
+        token outputs:surface.connect = </Root/Materials/Material_${ material.id }/PreviewSurface.outputs:surface>
+        string inputs:frame:stPrimvarName = "st"
 
         def Shader "uvReader_st"
         {
             uniform token info:id = "UsdPrimvarReader_float2"
-            token inputs:varname.connect = </Materials/Material_${ material.id }.inputs:frame:stPrimvarName>
+            string inputs:varname.connect = </Root/Materials/Material_${ material.id }.inputs:frame:stPrimvarName>
             float2 inputs:fallback = (0.0, 0.0)
             float2 outputs:result
         }
@@ -523,6 +590,12 @@ ${ samplers.join( '\n' ) }
 function buildColor( color ) {
 
 	return `(${ color.r }, ${ color.g }, ${ color.b })`;
+
+}
+
+function buildColor4( color, alpha ) {
+
+	return `(${ color.r }, ${ color.g }, ${ color.b }, ${ alpha })`;
 
 }
 

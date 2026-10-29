@@ -3,10 +3,15 @@ name: Release
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   push:
     name: Push to repository
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     outputs:
       version: ${{ steps.version.outputs.version }}
       dist_tag: ${{ steps.version.outputs.dist_tag }}
@@ -14,8 +19,7 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
-          token: ${{ secrets._GITHUB_PUSH_PAT }}
+          ref: ${{ github.sha }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -32,18 +36,14 @@ jobs:
         run: |
           node --input-type=commonjs <<'NODE'
           const fs = require('node:fs');
-          const { execFileSync } = require('node:child_process');
-          const { name, version } = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const { version } = JSON.parse(fs.readFileSync('package.json', 'utf8'));
           if (process.env.GITHUB_REF_TYPE !== 'branch') throw new Error('Release must run on the selected release branch, not a tag.');
-          if (execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim() !== process.env.GITHUB_SHA) {
-            throw new Error('Selected branch has moved since dispatch; rerun Release at its current revision.');
+          const number = '(?:0|[1-9]\\d*)';
+          const core = `${number}\\.${number}\\.${number}`;
+          if (!new RegExp(`^${core}(?:-beta\\.${number})?$`).test(version)) {
+            throw new Error('Release expects X.Y.Z or X.Y.Z-beta.N.');
           }
-          const stable = /^0\.137\.(0|[1-9]\d*)$/;
-          const beta = /^0\.137\.(0|[1-9]\d*)-beta\.(0|[1-9]\d*)$/;
-          const distTag = beta.test(version) ? 'beta' : stable.test(version) ? 'latest' : null;
-          if (name !== '@oppentech/three' || !distTag) {
-            throw new Error('Release expects @oppentech/three version 0.137.N or 0.137.N-beta.N.');
-          }
+          const distTag = version.includes('-beta.') ? 'beta' : 'latest';
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\ndist_tag=${distTag}\n`);
           NODE
 

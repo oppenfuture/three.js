@@ -59,12 +59,8 @@ jobs:
           node --input-type=commonjs <<'NODE'
           const fs = require('node:fs');
           const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-          const base = /^(0\.137\.(?:0|[1-9]\d*))(?:-beta\.(?:0|[1-9]\d*))?$/.exec(pkg.version);
-          const sha = process.env.GITHUB_SHA;
-          if (pkg.name !== '@oppentech/three' || !base || !/^[0-9a-f]{40}$/.test(sha || '')) {
-            throw new Error('CD expects @oppentech/three version 0.137.N or 0.137.N-beta.N and a full GitHub commit SHA.');
-          }
-          pkg.version = `${base[1]}-dev.sha${sha}`;
+          const base = pkg.version.split(/[+-]/)[0];
+          pkg.version = `${base}-dev.sha${process.env.GITHUB_SHA}`;
           fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           console.log(`Development package version: ${pkg.version}`);
           NODE
